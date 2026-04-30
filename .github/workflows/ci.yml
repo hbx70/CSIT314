@@ -20,7 +20,7 @@ jobs:
       mysql:
         image: mysql:8
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: hbx051211
           MYSQL_DATABASE: assignment
         ports:
           - 3306:3306
@@ -36,6 +36,9 @@ jobs:
           - 6379:6379
 
     steps:
+      - name: Debug DB
+        run: echo "DB_URL=$DB_URL"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
