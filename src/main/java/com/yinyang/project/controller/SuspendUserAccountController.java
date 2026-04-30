@@ -1,5 +1,6 @@
 package com.yinyang.project.controller;
 
+import com.yinyang.project.entity.UserAccount;
 import com.yinyang.project.entity.UserProfile;
 import com.yinyang.project.utils.ThreadLocalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,27 +11,27 @@ import java.util.Map;
 import java.util.Set;
 
 @Service
-public class SuspendUserProfileController {
+public class SuspendUserAccountController {
 
-    private UserProfile userProfile;
+    private UserAccount userAccount;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
-    public boolean suspendUserProfile(Integer userProfileId) {
+    public boolean suspendUserAccount(Integer userAccountId) {
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         if (currentUserRole == UserProfile.Name.ADMIN) {
-            userProfile = new UserProfile();
-            if (userProfile.suspendUserProfile(userProfileId)) {
+            userAccount = new UserAccount();
+            if (userAccount.suspendUserAccount(userAccountId)) {
                 // Kick the user out of the system immediately
-                String userProfileTokensKey = "user:tokens:profile:" + userProfileId;
-                Set<String> tokens = stringRedisTemplate.opsForSet().members(userProfileTokensKey);
+                String userTokensKey = "user:tokens:id:" + userAccountId;
+                Set<String> tokens = stringRedisTemplate.opsForSet().members(userTokensKey);
                 if (tokens != null && !tokens.isEmpty()) {
                     for (String token : tokens) {
                         stringRedisTemplate.delete("token:" + token);
                     }
-                    stringRedisTemplate.delete(userProfileTokensKey);
+                    stringRedisTemplate.delete(userTokensKey);
                 }
                 return true;
             }

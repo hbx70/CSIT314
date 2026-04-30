@@ -15,25 +15,20 @@ import java.util.List;
 @Getter
 @Setter
 public class UserProfile {
-    @NotNull
     private Integer id;
-    @NotBlank
-    private String name;
-    @NotBlank
-    @Email
-    private String email;
     @NotNull
+    private Name name;
+    @NotBlank
+    private String description;
     private Status status;
-    @NotNull
-    private Role role;
     private LocalDateTime createdAt;
+
+    public enum Name {
+        ADMIN, DONEE, FUND_RAISER, PLATFORM_MANAGER
+    }
 
     public enum Status {
         ACTIVE, SUSPENDED
-    }
-
-    public enum Role {
-        ADMIN, DONEE, FUND_RAISER, PLATFORM_MANAGER
     }
 
     public UserProfile getUserProfileById(Integer id) {
@@ -45,10 +40,9 @@ public class UserProfile {
                     (rs, rowNum) -> {
                         UserProfile user = new UserProfile();
                         user.setId(rs.getInt("id"));
-                        user.setName(rs.getString("name"));
-                        user.setEmail(rs.getString("email"));
+                        user.setName(Name.valueOf(rs.getString("name")));
+                        user.setDescription(rs.getString("description"));
                         user.setStatus(Status.valueOf(rs.getString("status")));
-                        user.setRole(Role.valueOf(rs.getString("role")));
                         user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         return user;
                     }
@@ -59,19 +53,18 @@ public class UserProfile {
         }
     }
 
-    public UserProfile getUserProfileByEmail(String email) {
-        String sql = "SELECT * FROM user_profile WHERE email = ?";
+    public UserProfile getUserProfileByName(String name) {
+        String sql = "SELECT * FROM user_profile WHERE name = ?";
         try {
             UserProfile userProfile = DBContext.getJdbcTemplate().queryForObject(
                     sql,
-                    new Object[]{email},
+                    new Object[]{name},
                     (rs, rowNum) -> {
                         UserProfile user = new UserProfile();
                         user.setId(rs.getInt("id"));
-                        user.setName(rs.getString("name"));
-                        user.setEmail(rs.getString("email"));
+                        user.setName(Name.valueOf(rs.getString("name")));
+                        user.setDescription(rs.getString("description"));
                         user.setStatus(Status.valueOf(rs.getString("status")));
-                        user.setRole(Role.valueOf(rs.getString("role")));
                         user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         return user;
                     }
@@ -83,16 +76,13 @@ public class UserProfile {
     }
 
     public boolean createUserProfile(UserProfile userProfileData) {
-        if (this.getUserProfileByEmail(userProfileData.getEmail()) == null) {
-            userProfileData.setStatus(Status.ACTIVE);
-            String sql = "INSERT INTO user_profile (id, name, email, status, role, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+        if (this.getUserProfileByName(userProfileData.getName().name()) == null) {
+            String sql = "INSERT INTO user_profile (name, description, status, created_at) VALUES (?, ?, ?, ?)";
             DBContext.getJdbcTemplate().update(
                     sql,
-                    userProfileData.getId(),
-                    userProfileData.getName(),
-                    userProfileData.getEmail(),
+                    userProfileData.getName().name(),
+                    userProfileData.getDescription(),
                     userProfileData.getStatus().name(),
-                    userProfileData.getRole().name(),
                     LocalDateTime.now()
             );
             return true;
@@ -100,28 +90,52 @@ public class UserProfile {
         return false;
     }
 
-    public List<UserProfile> getAllUserProfiles(String name, String email, String status, String role) {
+    public List<UserProfile> getAllUserProfiles() {
+        String sql = "SELECT * FROM user_profile";
+        return DBContext.getJdbcTemplate().query(
+                sql,
+                (rs, rowNum) -> {
+                    UserProfile userProfile = new UserProfile();
+                    userProfile.setId(rs.getInt("id"));
+                    userProfile.setName(Name.valueOf(rs.getString("name")));
+                    userProfile.setDescription(rs.getString("description"));
+                    userProfile.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                    return userProfile;
+                }
+        );
+    }
+
+    public boolean updateUserProfile(UserProfile newUserProfile) {
+        if (this.getUserProfileByName(newUserProfile.getName().name()) == null) {
+            String sql = "UPDATE user_profile SET name = ?, description = ? WHERE id = ?";
+            int row = DBContext.getJdbcTemplate().update(
+                    sql,
+                    newUserProfile.getName().name(),
+                    newUserProfile.getDescription(),
+                    newUserProfile.getId()
+            );
+            return row == 1;
+        }
+        return false;
+    }
+
+    public List<UserProfile> searchUserProfile(Name name, String description, Status status) {
         StringBuilder sql = new StringBuilder("SELECT * FROM user_profile WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
-        if (name != null && !name.isEmpty()) {
-            sql.append(" AND name LIKE ?");
-            params.add("%" + name + "%");
-        }
-
-        if (email != null && !email.isEmpty()) {
-            sql.append(" AND email LIKE ?");
-            params.add("%" + email + "%");
-        }
-
-        if (status != null && !status.isEmpty()) {
+        if (name != null) {
             sql.append(" AND status = ?");
-            params.add(status.toUpperCase());
+            params.add(name.name());
         }
 
-        if (role != null && !role.isEmpty()) {
-            sql.append(" AND role = ?");
-            params.add(role.toUpperCase());
+        if (description != null && !description.isEmpty()) {
+            sql.append(" AND description LIKE ?");
+            params.add("%" + description + "%");
+        }
+
+        if (status != null) {
+            sql.append(" AND status = ?");
+            params.add(status.name());
         }
 
         return DBContext.getJdbcTemplate().query(
@@ -130,60 +144,36 @@ public class UserProfile {
                 (rs, rowNum) -> {
                     UserProfile userProfile = new UserProfile();
                     userProfile.setId(rs.getInt("id"));
-                    userProfile.setName(rs.getString("name"));
-                    userProfile.setEmail(rs.getString("email"));
-                    userProfile.setStatus(Status.valueOf(rs.getString("status")));
-                    userProfile.setRole(Role.valueOf(rs.getString("role")));
+                    userProfile.setName(Name.valueOf(rs.getString("name")));
+                    userProfile.setDescription(rs.getString("description"));
                     userProfile.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     return userProfile;
                 }
         );
     }
 
-    public boolean updateUserProfile(UserProfile newUserProfile) {
-        if (this.getUserProfileByEmail(newUserProfile.getEmail()) == null) {
-            String sql = "UPDATE user_profile SET name = ?, email = ?, status = ?, role = ? WHERE id = ?";
+    public boolean suspendUserProfile(Integer userProfileId) {
+        UserProfile userProfile = this.getUserProfileById(userProfileId);
+        if (userProfile != null && userProfile.getStatus() != Status.SUSPENDED) {
+            String sql = "UPDATE user_profile SET status = 'SUSPENDED' WHERE id = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
-                    newUserProfile.getName(),
-                    newUserProfile.getEmail(),
-                    newUserProfile.getStatus(),
-                    newUserProfile.getRole(),
-                    newUserProfile.getId()
+                    userProfileId
             );
             return row == 1;
         }
         return false;
     }
 
-    public boolean suspendUserProfile(Integer userProfileId) {
-        UserProfile userProfile = this.getUserProfileById(userProfileId);
-        if (userProfile != null) {
-            if (userProfile.getStatus() != Status.SUSPENDED) {
-                String sql = "UPDATE user_profile SET status = 'SUSPENDED' WHERE id = ?";
-                DBContext.getJdbcTemplate().update(
-                        sql,
-                        userProfileId
-                );
-                return true;
-            }
-            return false;
-        }
-        return false;
-    }
-
     public boolean activateUserProfile(Integer userProfileId) {
         UserProfile userProfile = this.getUserProfileById(userProfileId);
-        if (userProfile != null) {
-            if (userProfile.getStatus() != Status.ACTIVE) {
-                String sql = "UPDATE user_profile SET status = 'ACTIVE' WHERE id = ?";
-                DBContext.getJdbcTemplate().update(
-                        sql,
-                        userProfileId
-                );
-                return true;
-            }
-            return false;
+        if (userProfile != null && userProfile.getStatus() != Status.ACTIVE) {
+            String sql = "UPDATE user_profile SET status = 'ACTIVE' WHERE id = ?";
+            int row = DBContext.getJdbcTemplate().update(
+                    sql,
+                    userProfileId
+            );
+            return row == 1;
         }
         return false;
     }

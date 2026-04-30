@@ -1,8 +1,7 @@
 package com.yinyang.project.boundary;
 
-import com.yinyang.project.controller.LoginController;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
+import com.yinyang.project.controller.LogoutController;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,14 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Validated
-@RequestMapping("/user/login")
-public class LoginPage {
+@RequestMapping("/user/logout")
+public class LogoutPage {
 
     @Autowired
-    private LoginController loginController;
+    private LogoutController logoutController;
 
     @PostMapping
-    public String login(@Valid @NotBlank String username, @NotBlank String password) {
-        return loginController.login(username, password);
+    public boolean logout(HttpServletRequest request){
+        return logoutController.logout(request);
     }
 }

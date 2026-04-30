@@ -2,7 +2,7 @@ package com.yinyang.project.entity;
 
 import com.yinyang.project.DBContext;
 import com.yinyang.project.utils.JwtUtil;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +11,12 @@ import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -22,10 +25,48 @@ import java.util.concurrent.TimeUnit;
 public class UserAccount {
     private Integer id;
     @NotBlank
+    @Size(min = 3, max = 16)
     private String username;
     @NotBlank
+    @Size(min = 6)
     private String password;
+    @NotBlank
+    @Email
+    private String email;
+    @NotBlank
+    private String address;
+    @NotNull
+    private Integer userProfileId; // TODO: Fix Bug
+    private Status status;
     private LocalDateTime createdAt;
+
+    public enum Status {
+        ACTIVE, SUSPENDED
+    }
+
+    public UserAccount getUserAccountById(Integer userAccountId) {
+        String sql = "SELECT * FROM user_account where id = ?";
+        try {
+            return DBContext.getJdbcTemplate().queryForObject(
+                    sql,
+                    new Object[]{userAccountId},
+                    (rs, rowNum) -> {
+                        UserAccount userAccount = new UserAccount();
+                        userAccount.setId(rs.getInt("id"));
+                        userAccount.setUsername(rs.getString("username"));
+                        userAccount.setPassword(rs.getString("password"));
+                        userAccount.setEmail(rs.getString("email"));
+                        userAccount.setAddress(rs.getString("address"));
+                        userAccount.setUserProfileId(rs.getInt("user_profile_id"));
+                        userAccount.setStatus(Status.valueOf(rs.getString("status")));
+                        userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                        return userAccount;
+                    }
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
 
     public UserAccount getUserAccountByUsername(String username) {
         String sql = "SELECT * FROM user_account where username = ?";
@@ -38,6 +79,34 @@ public class UserAccount {
                         userAccount.setId(rs.getInt("id"));
                         userAccount.setUsername(rs.getString("username"));
                         userAccount.setPassword(rs.getString("password"));
+                        userAccount.setEmail(rs.getString("email"));
+                        userAccount.setAddress(rs.getString("address"));
+                        userAccount.setUserProfileId(rs.getInt("user_profile_id"));
+                        userAccount.setStatus(Status.valueOf(rs.getString("status")));
+                        userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                        return userAccount;
+                    }
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    public UserAccount getUserAccountByEmail(String email) {
+        String sql = "SELECT * FROM user_account where email = ?";
+        try {
+            return DBContext.getJdbcTemplate().queryForObject(
+                    sql,
+                    new Object[]{email},
+                    (rs, rowNum) -> {
+                        UserAccount userAccount = new UserAccount();
+                        userAccount.setId(rs.getInt("id"));
+                        userAccount.setUsername(rs.getString("username"));
+                        userAccount.setPassword(rs.getString("password"));
+                        userAccount.setEmail(rs.getString("email"));
+                        userAccount.setAddress(rs.getString("address"));
+                        userAccount.setUserProfileId(rs.getInt("user_profile_id"));
+                        userAccount.setStatus(Status.valueOf(rs.getString("status")));
                         userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         return userAccount;
                     }
@@ -48,12 +117,16 @@ public class UserAccount {
     }
 
     public boolean createUserAccount(UserAccount userAccountData) {
-        if (this.getUserAccountByUsername(userAccountData.getUsername()) == null) {
-            String sql = "INSERT INTO user_account (username, password, created_at) values (?, ?, ?)";
+        if (this.getUserAccountByUsername(userAccountData.getUsername()) == null && this.getUserAccountByEmail(userAccountData.getEmail()) == null) {
+            String sql = "INSERT INTO user_account (username, password, email, address, user_profile_id, status, created_at) values (?, ?, ?, ?, ?, ?, ?)";
             DBContext.getJdbcTemplate().update(
                     sql,
                     userAccountData.getUsername(),
                     userAccountData.getPassword(),
+                    userAccountData.getEmail(),
+                    userAccountData.getAddress(),
+                    userAccountData.getUserProfileId(),
+                    userAccountData.getStatus().name(),
                     LocalDateTime.now()
             );
             return true;
@@ -61,13 +134,35 @@ public class UserAccount {
         return false;
     }
 
+    public List<UserAccount> getAllUserAccounts() {
+        String sql = "SELECT * FROM user_account";
+        return DBContext.getJdbcTemplate().query(
+                sql,
+                (rs, rowNum) -> {
+                    UserAccount userAccount = new UserAccount();
+                    userAccount.setId(rs.getInt("id"));
+                    userAccount.setUsername(rs.getString("username"));
+                    userAccount.setPassword(null);
+                    userAccount.setEmail(rs.getString("email"));
+                    userAccount.setUserProfileId(rs.getInt("user_profile_id"));
+                    userAccount.setStatus(Status.valueOf(rs.getString("status")));
+                    userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                    return userAccount;
+                }
+        );
+    }
+
+
     public boolean updateUserAccount(UserAccount newUserAccountData) {
-        if (this.getUserAccountByUsername(newUserAccountData.getUsername()) == null) {
-            String sql = "UPDATE user_account SET username = ?, password = ? WHERE id = ?";
+        if (this.getUserAccountByUsername(newUserAccountData.getUsername()) == null && this.getUserAccountByEmail(newUserAccountData.getEmail()) == null) {
+            String sql = "UPDATE user_account SET username = ?, password = ?, email = ?, address = ?, user_profile_id = ? WHERE id = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
                     newUserAccountData.getUsername(),
                     newUserAccountData.getPassword(),
+                    newUserAccountData.getEmail(),
+                    newUserAccountData.getAddress(),
+                    newUserAccountData.getUserProfileId(),
                     newUserAccountData.getId()
             );
             return row == 1;
@@ -75,13 +170,76 @@ public class UserAccount {
         return false;
     }
 
-    public boolean deleteUserAccount(Integer userAccountId) {
-        String sql = "DELETE FROM user_account WHERE id = ?";
-        int row = DBContext.getJdbcTemplate().update(
-                sql,
-                userAccountId
+    public List<UserAccount> searchUserAccount(String username, String email, String address, Integer userProfileId, Status status) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM user_account WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (username != null && !username.isEmpty()) {
+            sql.append(" AND username LIKE ?");
+            params.add("%" + username + "%");
+        }
+
+        if (email != null && !email.isEmpty()) {
+            sql.append(" AND email LIKE ?");
+            params.add("%" + email + "%");
+        }
+
+        if (address != null && !address.isEmpty()) {
+            sql.append(" AND address LIKE ?");
+            params.add("%" + address + "%");
+        }
+
+        if (userProfileId != null) {
+            sql.append(" AND user_profile_id = ? ");
+            params.add(userProfileId);
+        }
+
+        if (status != null) {
+            sql.append(" AND status = ?");
+            params.add(status.name());
+        }
+
+        return DBContext.getJdbcTemplate().query(
+                sql.toString(),
+                params.toArray(),
+                (rs, rowNum) -> {
+                    UserAccount userAccount = new UserAccount();
+                    userAccount.setId(rs.getInt("id"));
+                    userAccount.setUsername(rs.getString("username"));
+                    userAccount.setPassword(null);
+                    userAccount.setEmail(rs.getString("email"));
+                    userAccount.setUserProfileId(rs.getInt("user_profile_id"));
+                    userAccount.setStatus(Status.valueOf(rs.getString("status")));
+                    userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                    return userAccount;
+                }
         );
-        return row == 1;
+    }
+
+    public boolean suspendUserAccount(Integer userAccountId) {
+        UserAccount userAccount = this.getUserAccountById(userAccountId);
+        if (userAccount != null && userAccount.getStatus() != Status.SUSPENDED) {
+            String sql = "UPDATE user_account SET status = 'SUSPENDED' WHERE id = ?";
+            int row = DBContext.getJdbcTemplate().update(
+                    sql,
+                    userAccountId
+            );
+            return row == 1;
+        }
+        return false;
+    }
+
+    public boolean activateUserAccount(Integer userAccountId) {
+        UserAccount userAccount = this.getUserAccountById(userAccountId);
+        if (userAccount != null && userAccount.getStatus() != Status.ACTIVE) {
+            String sql = "UPDATE user_account SET status = 'ACTIVE' WHERE id = ?";
+            int row = DBContext.getJdbcTemplate().update(
+                    sql,
+                    userAccountId
+            );
+            return row == 1;
+        }
+        return false;
     }
 
     public String login(String username, String password) {
@@ -90,29 +248,16 @@ public class UserAccount {
             BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
             if (encoder.matches(password, userAccount.getPassword())) {
                 UserProfile userProfile = new UserProfile();
-                UserProfile currentUserProfile = userProfile.getUserProfileById(userAccount.getId());
-                if (currentUserProfile.getStatus() == UserProfile.Status.ACTIVE) {
+                UserProfile currentUserProfile = userProfile.getUserProfileById(userAccount.getUserProfileId());
+                if (userAccount.getStatus() == Status.ACTIVE && currentUserProfile.getStatus() == UserProfile.Status.ACTIVE) {
                     Map<String, Object> claims = new HashMap<>();
                     claims.put("id", userAccount.getId());
                     claims.put("username", userAccount.getUsername());
-                    claims.put("role", currentUserProfile.getRole());
+                    claims.put("userProfileId", currentUserProfile.getId());
+                    claims.put("role", currentUserProfile.getName().name());
 
                     // generate JWT token
-                    String token = JwtUtil.genToken(claims);
-
-                    // store toke into redis
-                    StringRedisTemplate stringRedisTemplate = new StringRedisTemplate();
-                    ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
-                    SetOperations<String, String> setOperations = stringRedisTemplate.opsForSet();
-
-                    String tokenKey = "token:" + token;
-                    operations.set(tokenKey, "1", 6, TimeUnit.HOURS);
-
-                    String userTokensKey = "user:tokens:" + userAccount.getId();
-                    setOperations.add(userTokensKey, token);
-
-                    stringRedisTemplate.expire(userTokensKey, 6, TimeUnit.HOURS);
-                    return token;
+                    return JwtUtil.genToken(claims);
                 }
                 return null;
             }
