@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DB_URL: ${{ secrets.DB_URL }}
-      DB_USERNAME: ${{ secrets.DB_USERNAME }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_URL: jdbc:mysql://localhost:3306/assignment
+      DB_USERNAME: root
+      DB_PASSWORD: hbx051211
       REDIS_HOST: localhost
       REDIS_PORT: 6379
 
