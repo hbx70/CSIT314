@@ -1,6 +1,6 @@
 package com.yinyang.project.boundary;
 
-import com.yinyang.project.controller.SearchUserProfileController;
+import com.yinyang.project.controller.SearchUserProfilesController;
 import com.yinyang.project.entity.UserProfile;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -16,13 +16,13 @@ import java.util.List;
 @RestController
 @Validated
 @RequestMapping("/user/profile/search")
-public class SearchUserProfilePage {
+public class SearchUserProfilesPage {
 
     @Autowired
-    private SearchUserProfileController searchUserProfileController;
+    private SearchUserProfilesController searchUserProfilesController;
 
     @GetMapping
-    public List<UserProfile> searchUserProfile(@Valid @NotNull UserProfile.Name name, @NotBlank String description, @NotNull UserProfile.Status status) {
-        return searchUserProfileController.searchUserProfile(name, description, status);
+    public List<UserProfile> searchUserProfiles(@Valid @NotNull UserProfile.Name name, @NotBlank String description, @NotNull UserProfile.Status status) {
+        return searchUserProfilesController.searchUserProfiles(name, description, status);
     }
 }

@@ -10,17 +10,17 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class SearchUserAccountController {
+public class SearchUserAccountsController {
 
     private UserAccount userAccount;
 
-    public List<UserAccount> searchUserAccount(String username, String email, String address, Integer userProfileId, UserAccount.Status status) {
+    public List<UserAccount> searchUserAccounts(String username, String email, String address, UserProfile.Name userProfileName, UserAccount.Status status) {
         List<UserAccount> userAccounts = new ArrayList<>();
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         if (currentUserRole == UserProfile.Name.ADMIN) {
             userAccount = new UserAccount();
-            userAccounts = userAccount.searchUserAccount(username, email, address, userProfileId, status);
+            userAccounts = userAccount.searchUserAccounts(username, email, address, userProfileName, status);
             return userAccounts;
         }
         return userAccounts;

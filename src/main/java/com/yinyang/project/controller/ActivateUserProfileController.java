@@ -11,12 +11,12 @@ public class ActivateUserProfileController {
 
     private UserProfile userProfile;
 
-    public boolean activateUserProfile(Integer userProfileId) {
+    public boolean activateUserProfile(String userProfileName) {
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         if (currentUserRole == UserProfile.Name.ADMIN) {
             userProfile = new UserProfile();
-            return userProfile.activateUserProfile(userProfileId);
+            return userProfile.activateUserProfile(userProfileName);
         }
         return false;
     }

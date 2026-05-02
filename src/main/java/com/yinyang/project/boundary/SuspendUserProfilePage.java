@@ -18,7 +18,7 @@ public class SuspendUserProfilePage {
     private SuspendUserProfileController suspendUserProfileController;
 
     @PatchMapping
-    public boolean suspendUserProfile(@Valid @NotNull Integer userProfileId) {
-        return suspendUserProfileController.suspendUserProfile(userProfileId);
+    public boolean suspendUserProfile(@Valid @NotNull String userProfileName) {
+        return suspendUserProfileController.suspendUserProfile(userProfileName);
     }
 }

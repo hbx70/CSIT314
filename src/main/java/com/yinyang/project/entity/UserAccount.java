@@ -1,24 +1,19 @@
 package com.yinyang.project.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yinyang.project.DBContext;
 import com.yinyang.project.utils.JwtUtil;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.redis.core.SetOperations;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Setter
 @Getter
@@ -36,7 +31,7 @@ public class UserAccount {
     @NotBlank
     private String address;
     @NotNull
-    private Integer userProfileId; // TODO: Fix Bug
+    private UserProfile.Name userProfileName;
     private Status status;
     private LocalDateTime createdAt;
 
@@ -57,8 +52,8 @@ public class UserAccount {
                         userAccount.setPassword(rs.getString("password"));
                         userAccount.setEmail(rs.getString("email"));
                         userAccount.setAddress(rs.getString("address"));
-                        userAccount.setUserProfileId(rs.getInt("user_profile_id"));
                         userAccount.setStatus(Status.valueOf(rs.getString("status")));
+                        userAccount.setUserProfileName(UserProfile.Name.valueOf(rs.getString("user_profile_name")));
                         userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         return userAccount;
                     }
@@ -81,8 +76,8 @@ public class UserAccount {
                         userAccount.setPassword(rs.getString("password"));
                         userAccount.setEmail(rs.getString("email"));
                         userAccount.setAddress(rs.getString("address"));
-                        userAccount.setUserProfileId(rs.getInt("user_profile_id"));
                         userAccount.setStatus(Status.valueOf(rs.getString("status")));
+                        userAccount.setUserProfileName(UserProfile.Name.valueOf(rs.getString("user_profile_name")));
                         userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         return userAccount;
                     }
@@ -105,8 +100,8 @@ public class UserAccount {
                         userAccount.setPassword(rs.getString("password"));
                         userAccount.setEmail(rs.getString("email"));
                         userAccount.setAddress(rs.getString("address"));
-                        userAccount.setUserProfileId(rs.getInt("user_profile_id"));
                         userAccount.setStatus(Status.valueOf(rs.getString("status")));
+                        userAccount.setUserProfileName(UserProfile.Name.valueOf(rs.getString("user_profile_name")));
                         userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         return userAccount;
                     }
@@ -118,15 +113,15 @@ public class UserAccount {
 
     public boolean createUserAccount(UserAccount userAccountData) {
         if (this.getUserAccountByUsername(userAccountData.getUsername()) == null && this.getUserAccountByEmail(userAccountData.getEmail()) == null) {
-            String sql = "INSERT INTO user_account (username, password, email, address, user_profile_id, status, created_at) values (?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO user_account (username, password, email, address, status, user_profile_name, created_at) values (?, ?, ?, ?, ?, ?, ?)";
             DBContext.getJdbcTemplate().update(
                     sql,
                     userAccountData.getUsername(),
                     userAccountData.getPassword(),
                     userAccountData.getEmail(),
                     userAccountData.getAddress(),
-                    userAccountData.getUserProfileId(),
                     userAccountData.getStatus().name(),
+                    userAccountData.getUserProfileName().name(),
                     LocalDateTime.now()
             );
             return true;
@@ -134,6 +129,7 @@ public class UserAccount {
         return false;
     }
 
+    @JsonIgnore
     public List<UserAccount> getAllUserAccounts() {
         String sql = "SELECT * FROM user_account";
         return DBContext.getJdbcTemplate().query(
@@ -143,9 +139,10 @@ public class UserAccount {
                     userAccount.setId(rs.getInt("id"));
                     userAccount.setUsername(rs.getString("username"));
                     userAccount.setPassword(null);
+                    userAccount.setAddress(rs.getString("address"));
                     userAccount.setEmail(rs.getString("email"));
-                    userAccount.setUserProfileId(rs.getInt("user_profile_id"));
                     userAccount.setStatus(Status.valueOf(rs.getString("status")));
+                    userAccount.setUserProfileName(UserProfile.Name.valueOf(rs.getString("user_profile_name")));
                     userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     return userAccount;
                 }
@@ -155,14 +152,14 @@ public class UserAccount {
 
     public boolean updateUserAccount(UserAccount newUserAccountData) {
         if (this.getUserAccountByUsername(newUserAccountData.getUsername()) == null && this.getUserAccountByEmail(newUserAccountData.getEmail()) == null) {
-            String sql = "UPDATE user_account SET username = ?, password = ?, email = ?, address = ?, user_profile_id = ? WHERE id = ?";
+            String sql = "UPDATE user_account SET username = ?, password = ?, email = ?, address = ?, user_profile_name = ? WHERE id = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
                     newUserAccountData.getUsername(),
                     newUserAccountData.getPassword(),
                     newUserAccountData.getEmail(),
                     newUserAccountData.getAddress(),
-                    newUserAccountData.getUserProfileId(),
+                    newUserAccountData.getUserProfileName().name(),
                     newUserAccountData.getId()
             );
             return row == 1;
@@ -170,7 +167,7 @@ public class UserAccount {
         return false;
     }
 
-    public List<UserAccount> searchUserAccount(String username, String email, String address, Integer userProfileId, Status status) {
+    public List<UserAccount> searchUserAccounts(String username, String email, String address, UserProfile.Name userProfileName, Status status) {
         StringBuilder sql = new StringBuilder("SELECT * FROM user_account WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
@@ -189,9 +186,9 @@ public class UserAccount {
             params.add("%" + address + "%");
         }
 
-        if (userProfileId != null) {
-            sql.append(" AND user_profile_id = ? ");
-            params.add(userProfileId);
+        if (userProfileName != null) {
+            sql.append(" AND user_profile_name = ? ");
+            params.add(userProfileName.name());
         }
 
         if (status != null) {
@@ -208,8 +205,8 @@ public class UserAccount {
                     userAccount.setUsername(rs.getString("username"));
                     userAccount.setPassword(null);
                     userAccount.setEmail(rs.getString("email"));
-                    userAccount.setUserProfileId(rs.getInt("user_profile_id"));
                     userAccount.setStatus(Status.valueOf(rs.getString("status")));
+                    userAccount.setUserProfileName(UserProfile.Name.valueOf(rs.getString("user_profile_name")));
                     userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     return userAccount;
                 }
@@ -248,14 +245,12 @@ public class UserAccount {
             BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
             if (encoder.matches(password, userAccount.getPassword())) {
                 UserProfile userProfile = new UserProfile();
-                UserProfile currentUserProfile = userProfile.getUserProfileById(userAccount.getUserProfileId());
+                UserProfile currentUserProfile = userProfile.getUserProfileByName(userAccount.getUserProfileName().name());
                 if (userAccount.getStatus() == Status.ACTIVE && currentUserProfile.getStatus() == UserProfile.Status.ACTIVE) {
                     Map<String, Object> claims = new HashMap<>();
                     claims.put("id", userAccount.getId());
                     claims.put("username", userAccount.getUsername());
-                    claims.put("userProfileId", currentUserProfile.getId());
                     claims.put("role", currentUserProfile.getName().name());
-
                     // generate JWT token
                     return JwtUtil.genToken(claims);
                 }

@@ -18,7 +18,7 @@ public class ActivateUserProfilePage {
     private ActivateUserProfileController activateUserProfileController;
 
     @PatchMapping
-    public boolean activateUserProfile(@Valid @NotNull Integer userProfileId) {
-        return activateUserProfileController.activateUserProfile(userProfileId);
+    public boolean activateUserProfile(@Valid @NotNull String userProfileName) {
+        return activateUserProfileController.activateUserProfile(userProfileName);
     }
 }

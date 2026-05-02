@@ -1,7 +1,6 @@
 package com.yinyang.project.entity;
 
 import com.yinyang.project.DBContext;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -15,7 +14,6 @@ import java.util.List;
 @Getter
 @Setter
 public class UserProfile {
-    private Integer id;
     @NotNull
     private Name name;
     @NotBlank
@@ -31,28 +29,6 @@ public class UserProfile {
         ACTIVE, SUSPENDED
     }
 
-    public UserProfile getUserProfileById(Integer id) {
-        String sql = "SELECT * FROM user_profile WHERE id = ?";
-        try {
-            UserProfile userProfile = DBContext.getJdbcTemplate().queryForObject(
-                    sql,
-                    new Object[]{id},
-                    (rs, rowNum) -> {
-                        UserProfile user = new UserProfile();
-                        user.setId(rs.getInt("id"));
-                        user.setName(Name.valueOf(rs.getString("name")));
-                        user.setDescription(rs.getString("description"));
-                        user.setStatus(Status.valueOf(rs.getString("status")));
-                        user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-                        return user;
-                    }
-            );
-            return userProfile;
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
     public UserProfile getUserProfileByName(String name) {
         String sql = "SELECT * FROM user_profile WHERE name = ?";
         try {
@@ -61,7 +37,6 @@ public class UserProfile {
                     new Object[]{name},
                     (rs, rowNum) -> {
                         UserProfile user = new UserProfile();
-                        user.setId(rs.getInt("id"));
                         user.setName(Name.valueOf(rs.getString("name")));
                         user.setDescription(rs.getString("description"));
                         user.setStatus(Status.valueOf(rs.getString("status")));
@@ -96,9 +71,9 @@ public class UserProfile {
                 sql,
                 (rs, rowNum) -> {
                     UserProfile userProfile = new UserProfile();
-                    userProfile.setId(rs.getInt("id"));
                     userProfile.setName(Name.valueOf(rs.getString("name")));
                     userProfile.setDescription(rs.getString("description"));
+                    userProfile.setStatus(Status.valueOf(rs.getString("status")));
                     userProfile.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     return userProfile;
                 }
@@ -107,24 +82,23 @@ public class UserProfile {
 
     public boolean updateUserProfile(UserProfile newUserProfile) {
         if (this.getUserProfileByName(newUserProfile.getName().name()) == null) {
-            String sql = "UPDATE user_profile SET name = ?, description = ? WHERE id = ?";
+            String sql = "UPDATE user_profile SET description = ? WHERE name = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
-                    newUserProfile.getName().name(),
                     newUserProfile.getDescription(),
-                    newUserProfile.getId()
+                    newUserProfile.getName().name()
             );
             return row == 1;
         }
         return false;
     }
 
-    public List<UserProfile> searchUserProfile(Name name, String description, Status status) {
+    public List<UserProfile> searchUserProfiles(Name name, String description, Status status) {
         StringBuilder sql = new StringBuilder("SELECT * FROM user_profile WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
         if (name != null) {
-            sql.append(" AND status = ?");
+            sql.append(" AND name = ?");
             params.add(name.name());
         }
 
@@ -143,35 +117,35 @@ public class UserProfile {
                 params.toArray(),
                 (rs, rowNum) -> {
                     UserProfile userProfile = new UserProfile();
-                    userProfile.setId(rs.getInt("id"));
                     userProfile.setName(Name.valueOf(rs.getString("name")));
                     userProfile.setDescription(rs.getString("description"));
+                    userProfile.setStatus(Status.valueOf(rs.getString("status")));
                     userProfile.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     return userProfile;
                 }
         );
     }
 
-    public boolean suspendUserProfile(Integer userProfileId) {
-        UserProfile userProfile = this.getUserProfileById(userProfileId);
+    public boolean suspendUserProfile(String userProfileName) {
+        UserProfile userProfile = this.getUserProfileByName(userProfileName);
         if (userProfile != null && userProfile.getStatus() != Status.SUSPENDED) {
-            String sql = "UPDATE user_profile SET status = 'SUSPENDED' WHERE id = ?";
+            String sql = "UPDATE user_profile SET status = 'SUSPENDED' WHERE name = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
-                    userProfileId
+                    userProfileName
             );
             return row == 1;
         }
         return false;
     }
 
-    public boolean activateUserProfile(Integer userProfileId) {
-        UserProfile userProfile = this.getUserProfileById(userProfileId);
+    public boolean activateUserProfile(String userProfileName) {
+        UserProfile userProfile = this.getUserProfileByName(userProfileName);
         if (userProfile != null && userProfile.getStatus() != Status.ACTIVE) {
-            String sql = "UPDATE user_profile SET status = 'ACTIVE' WHERE id = ?";
+            String sql = "UPDATE user_profile SET status = 'ACTIVE' WHERE name = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
-                    userProfileId
+                    userProfileName
             );
             return row == 1;
         }

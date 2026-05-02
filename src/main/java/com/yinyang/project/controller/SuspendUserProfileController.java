@@ -17,14 +17,14 @@ public class SuspendUserProfileController {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
-    public boolean suspendUserProfile(Integer userProfileId) {
+    public boolean suspendUserProfile(String userProfileName) {
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         if (currentUserRole == UserProfile.Name.ADMIN) {
             userProfile = new UserProfile();
-            if (userProfile.suspendUserProfile(userProfileId)) {
+            if (userProfile.suspendUserProfile(userProfileName)) {
                 // Kick the user out of the system immediately
-                String userProfileTokensKey = "user:tokens:profile:" + userProfileId;
+                String userProfileTokensKey = "user:tokens:profile:" + userProfileName;
                 Set<String> tokens = stringRedisTemplate.opsForSet().members(userProfileTokensKey);
                 if (tokens != null && !tokens.isEmpty()) {
                     for (String token : tokens) {
