@@ -5,7 +5,7 @@ DELETE FROM user_profile;
 -- User Profile
 -- =========================
 
-INSERT INTO user_profile (enum, description, status)
+INSERT INTO user_profile (name, description, status)
 VALUES
     ('ADMIN', 'Admin role', 'ACTIVE'),
     ('DONEE', 'Donee role', 'ACTIVE'),
