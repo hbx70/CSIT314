@@ -20,13 +20,13 @@ class ProjectApplicationTests {
 
     @Test
     void loginSuccess() throws Exception {
-        String token = performLogin("testuser", "123456");
+        String token = performLogin("validUser", "123456");
         assertNotNull(token);
     }
 
     @Test
     void loginWrongPassword() throws Exception {
-        String token = performLogin("alex", "wrongPassword");
+        String token = performLogin("validUser2", "wrongPassword");
         assertTrue(token.isEmpty());
     }
 
@@ -42,11 +42,11 @@ class ProjectApplicationTests {
         assertTrue(token.isEmpty());
     }
 
-//    @Test
-//    void loginRoleSuspended() throws Exception {
-//        String token = performLogin("roleSuspendedUser", "correctPassword");
-//        assertTrue(token.isEmpty());
-//    }
+    @Test
+    void loginRoleSuspended() throws Exception {
+        String token = performLogin("roleSuspendedUser", "123456");
+        assertTrue(token.isEmpty());
+    }
 
     private String performLogin(String username, String password) throws Exception {
         MvcResult result = mockMvc.perform(post("/user/login")
