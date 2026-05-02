@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS user_profile;
 -- User Profile (角色表)
 -- =========================
 CREATE TABLE user_profile (
-    enum ('ADMIN', 'DONEE', 'FUND_RAISER', 'PLATFORM_MANAGER') not null primary key,
+    name ENUM('ADMIN', 'DONEE', 'FUND_RAISER', 'PLATFORM_MANAGER') NOT NULL PRIMARY KEY,
     description text not null,
     status enum ('ACTIVE', 'SUSPENDED') default 'ACTIVE' not null,
     created_at  datetime default CURRENT_TIMESTAMP not null
