@@ -25,20 +25,22 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=5s
           --health-timeout=5s
-          --health-retries=3
+          --health-retries=10
 
       redis:
-        image: redis
+        image: redis:7
         ports:
           - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=10
 
     steps:
-      - name: Debug DB
-        run: echo "DB_URL=$DB_URL"
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -47,25 +49,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+          cache: maven
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-
-      - name: Wait for MySQL
-        run: |
-          for i in {1..30}; do
-            nc -z localhost 3306 && echo "MySQL is up!" && exit 0
-            echo "Waiting for MySQL..."
-            sleep 2
-          done
-          echo "MySQL failed to start"
-          exit 1
-
-      - name: Build with Maven
-        run: mvn clean install -DskipTests
-
-      - name: Run tests
-        run: mvn test
+      - name: Build & Test (fast mode)
+        run: mvn -B clean test
