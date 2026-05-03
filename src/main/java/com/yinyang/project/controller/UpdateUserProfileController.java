@@ -14,7 +14,7 @@ public class UpdateUserProfileController {
     public boolean updateUserProfile(UserProfile newUserProfile) {
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
-        if (currentUserRole == UserProfile.Name.ADMIN) {
+        if (currentUserRole == UserProfile.Name.ADMIN && newUserProfile.getName() != null) {
             userProfile = new UserProfile();
             return userProfile.updateUserProfile(newUserProfile);
         }

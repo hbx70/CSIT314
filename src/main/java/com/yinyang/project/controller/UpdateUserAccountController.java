@@ -16,7 +16,7 @@ public class UpdateUserAccountController {
     public boolean updateUserAccount(UserAccount newUserAccountData) {
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
-        if  (currentUserRole == UserProfile.Name.ADMIN) {
+        if  (currentUserRole == UserProfile.Name.ADMIN && newUserAccountData.getId() != null) {
             userAccount = new UserAccount();
             BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
             String encodedPassword = encoder.encode(newUserAccountData.getPassword());
