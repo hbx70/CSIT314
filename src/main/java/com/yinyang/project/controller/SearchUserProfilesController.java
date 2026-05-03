@@ -20,7 +20,6 @@ public class SearchUserProfilesController {
         if (currentUserRole == UserProfile.Name.ADMIN) {
             userProfile = new UserProfile();
             userProfiles = userProfile.searchUserProfiles(name, description, status);
-            return userProfiles;
         }
         return userProfiles;
     }

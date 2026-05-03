@@ -21,7 +21,6 @@ public class SearchUserAccountsController {
         if (currentUserRole == UserProfile.Name.ADMIN) {
             userAccount = new UserAccount();
             userAccounts = userAccount.searchUserAccounts(username, email, address, userProfileName, status);
-            return userAccounts;
         }
         return userAccounts;
     }

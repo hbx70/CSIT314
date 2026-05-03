@@ -21,7 +21,6 @@ public class ViewAllUserAccountsController {
         if (currentUserRole == UserProfile.Name.ADMIN) {
             userAccount = new UserAccount();
             userAccounts = userAccount.getAllUserAccounts();
-            return userAccounts;
         }
         return userAccounts;
     }

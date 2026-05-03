@@ -20,7 +20,6 @@ public class ViewAllUserProfilesController {
         if (currentUserRole == UserProfile.Name.ADMIN) {
             userProfile = new UserProfile();
             userProfiles = userProfile.getAllUserProfiles();
-            return userProfiles;
         }
         return userProfiles;
     }
