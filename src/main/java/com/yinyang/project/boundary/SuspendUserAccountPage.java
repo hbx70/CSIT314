@@ -25,7 +25,7 @@ public class SuspendUserAccountPage {
     private StringRedisTemplate stringRedisTemplate;
 
     @PatchMapping
-    public boolean suspendUserAccount(@Valid @NotNull Integer userAccountId) {
+    public boolean suspendUserAccount(@NotNull Integer userAccountId) {
         if (suspendUserAccountController.suspendUserAccount(userAccountId)) {
             // Kick the user out of the system immediately
             String userTokensKey = "user:tokens:id:" + userAccountId;

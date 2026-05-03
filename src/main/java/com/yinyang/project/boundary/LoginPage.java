@@ -28,7 +28,7 @@ public class LoginPage {
     private StringRedisTemplate stringRedisTemplate;
 
     @PostMapping
-    public String login(@Valid @NotBlank String username, @NotBlank String password) {
+    public String login(@Valid @NotBlank String username, @Valid @NotBlank String password) {
         String token = loginController.login(username, password);
         if (token != null) {
             Map<String, Object> claims = JwtUtil.parseToken(token);

@@ -1,7 +1,6 @@
 package com.yinyang.project.boundary;
 
 import com.yinyang.project.controller.ActivateUserAccountController;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -18,7 +17,7 @@ public class ActivateUserAccountPage {
     private ActivateUserAccountController activateUserAccountController;
 
     @PatchMapping
-    public boolean activateUserAccount(@Valid @NotNull Integer userAccountId) {
+    public boolean activateUserAccount(@NotNull Integer userAccountId) {
         return activateUserAccountController.activateUserAccount(userAccountId);
     }
 

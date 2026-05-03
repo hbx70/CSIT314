@@ -24,7 +24,7 @@ public class SuspendUserProfilePage {
     private StringRedisTemplate stringRedisTemplate;
 
     @PatchMapping
-    public boolean suspendUserProfile(@Valid @NotNull UserProfile.Name userProfileName) {
+    public boolean suspendUserProfile(@NotNull UserProfile.Name userProfileName) {
         if (suspendUserProfileController.suspendUserProfile(userProfileName)) {
             // Kick the user out of the system immediately
             String userProfileTokensKey = "user:tokens:profile:" + userProfileName.name();

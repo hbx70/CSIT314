@@ -1,9 +1,7 @@
 package com.yinyang.project.boundary;
 
 import com.yinyang.project.controller.ViewAllUserAccountsController;
-import com.yinyang.project.controller.ViewAllUserProfilesController;
 import com.yinyang.project.entity.UserAccount;
-import com.yinyang.project.entity.UserProfile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
