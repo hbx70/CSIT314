@@ -29,12 +29,12 @@ public class UserProfile {
         ACTIVE, SUSPENDED
     }
 
-    public UserProfile getUserProfileByName(String name) {
+    public UserProfile getUserProfileByName(UserProfile.Name name) {
         String sql = "SELECT * FROM user_profile WHERE name = ?";
         try {
             UserProfile userProfile = DBContext.getJdbcTemplate().queryForObject(
                     sql,
-                    new Object[]{name},
+                    new Object[]{name.name()},
                     (rs, rowNum) -> {
                         UserProfile user = new UserProfile();
                         user.setName(Name.valueOf(rs.getString("name")));
@@ -51,7 +51,7 @@ public class UserProfile {
     }
 
     public boolean createUserProfile(UserProfile userProfileData) {
-        if (this.getUserProfileByName(userProfileData.getName().name()) == null) {
+        if (this.getUserProfileByName(userProfileData.getName()) == null) {
             String sql = "INSERT INTO user_profile (name, description, status, created_at) VALUES (?, ?, ?, ?)";
             DBContext.getJdbcTemplate().update(
                     sql,
@@ -81,7 +81,7 @@ public class UserProfile {
     }
 
     public boolean updateUserProfile(UserProfile newUserProfile) {
-        if (this.getUserProfileByName(newUserProfile.getName().name()) == null) {
+        if (this.getUserProfileByName(newUserProfile.getName()) == null) {
             String sql = "UPDATE user_profile SET description = ? WHERE name = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
@@ -126,20 +126,20 @@ public class UserProfile {
         );
     }
 
-    public boolean suspendUserProfile(String userProfileName) {
+    public boolean suspendUserProfile(UserProfile.Name userProfileName) {
         UserProfile userProfile = this.getUserProfileByName(userProfileName);
         if (userProfile != null && userProfile.getStatus() != Status.SUSPENDED) {
             String sql = "UPDATE user_profile SET status = 'SUSPENDED' WHERE name = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
-                    userProfileName
+                    userProfileName.name()
             );
             return row == 1;
         }
         return false;
     }
 
-    public boolean activateUserProfile(String userProfileName) {
+    public boolean activateUserProfile(UserProfile.Name userProfileName) {
         UserProfile userProfile = this.getUserProfileByName(userProfileName);
         if (userProfile != null && userProfile.getStatus() != Status.ACTIVE) {
             String sql = "UPDATE user_profile SET status = 'ACTIVE' WHERE name = ?";

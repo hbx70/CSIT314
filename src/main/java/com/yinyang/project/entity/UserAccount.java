@@ -254,7 +254,7 @@ public class UserAccount {
             BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
             if (encoder.matches(password, userAccount.getPassword())) {
                 UserProfile userProfile = new UserProfile();
-                UserProfile currentUserProfile = userProfile.getUserProfileByName(userAccount.getUserProfileName().name());
+                UserProfile currentUserProfile = userProfile.getUserProfileByName(userAccount.getUserProfileName());
                 if (userAccount.getStatus() == Status.ACTIVE && currentUserProfile.getStatus() == UserProfile.Status.ACTIVE) {
                     Map<String, Object> claims = new HashMap<>();
                     claims.put("id", userAccount.getId());
