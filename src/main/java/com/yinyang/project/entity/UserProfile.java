@@ -66,7 +66,7 @@ public class UserProfile {
     }
 
     public List<UserProfile> getAllUserProfiles() {
-        String sql = "SELECT * FROM user_profile";
+        String sql = "SELECT * FROM user_profile ORDER BY created_at DESC";
         return DBContext.getJdbcTemplate().query(
                 sql,
                 (rs, rowNum) -> {
@@ -93,7 +93,7 @@ public class UserProfile {
         return false;
     }
 
-    public List<UserProfile> searchUserProfiles(Name name, String description, Status status) {
+    public List<UserProfile> searchUserProfiles(Name name, String description, Status status, String order) {
         StringBuilder sql = new StringBuilder("SELECT * FROM user_profile WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
@@ -111,6 +111,12 @@ public class UserProfile {
             sql.append(" AND status = ?");
             params.add(status.name());
         }
+
+        String orderDirection = "DESC";
+        if ("asc".equalsIgnoreCase(order)) {
+            orderDirection = "ASC";
+        }
+        sql.append(" ORDER BY created_at ").append(orderDirection);
 
         return DBContext.getJdbcTemplate().query(
                 sql.toString(),

@@ -140,7 +140,7 @@ public class UserAccount {
 
     @JsonIgnore
     public List<UserAccount> getAllUserAccounts() {
-        String sql = "SELECT * FROM user_account";
+        String sql = "SELECT * FROM user_account ORDER BY created_at DESC";
         return DBContext.getJdbcTemplate().query(
                 sql,
                 (rs, rowNum) -> {
@@ -176,7 +176,7 @@ public class UserAccount {
         return false;
     }
 
-    public List<UserAccount> searchUserAccounts(String username, String email, String address, UserProfile.Name userProfileName, Status status) {
+    public List<UserAccount> searchUserAccounts(String username, String email, String address, UserProfile.Name userProfileName, Status status, String order) {
         StringBuilder sql = new StringBuilder("SELECT * FROM user_account WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
@@ -204,6 +204,12 @@ public class UserAccount {
             sql.append(" AND status = ?");
             params.add(status.name());
         }
+
+        String orderDirection = "DESC";
+        if ("asc".equalsIgnoreCase(order)) {
+            orderDirection = "ASC";
+        }
+        sql.append(" ORDER BY created_at ").append(orderDirection);
 
         return DBContext.getJdbcTemplate().query(
                 sql.toString(),

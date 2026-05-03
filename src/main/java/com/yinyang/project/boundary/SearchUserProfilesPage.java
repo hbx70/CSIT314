@@ -2,6 +2,7 @@ package com.yinyang.project.boundary;
 
 import com.yinyang.project.controller.SearchUserProfilesController;
 import com.yinyang.project.entity.UserProfile;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,7 @@ public class SearchUserProfilesPage {
     private SearchUserProfilesController searchUserProfilesController;
 
     @GetMapping
-    public List<UserProfile> searchUserProfiles(@RequestParam(required = false) UserProfile.Name name, @RequestParam(required = false) String description, @RequestParam(required = false) UserProfile.Status status) {
-        return searchUserProfilesController.searchUserProfiles(name, description, status);
+    public List<UserProfile> searchUserProfiles(@RequestParam(required = false) UserProfile.Name name, @RequestParam(required = false) String description, @RequestParam(required = false) UserProfile.Status status, @NotBlank String order) {
+        return searchUserProfilesController.searchUserProfiles(name, description, status, order);
     }
 }

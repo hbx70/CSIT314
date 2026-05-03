@@ -14,13 +14,13 @@ public class SearchUserAccountsController {
 
     private UserAccount userAccount;
 
-    public List<UserAccount> searchUserAccounts(String username, String email, String address, UserProfile.Name userProfileName, UserAccount.Status status) {
+    public List<UserAccount> searchUserAccounts(String username, String email, String address, UserProfile.Name userProfileName, UserAccount.Status status, String order) {
         List<UserAccount> userAccounts = new ArrayList<>();
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         if (currentUserRole == UserProfile.Name.ADMIN) {
             userAccount = new UserAccount();
-            userAccounts = userAccount.searchUserAccounts(username, email, address, userProfileName, status);
+            userAccounts = userAccount.searchUserAccounts(username, email, address, userProfileName, status, order);
         }
         return userAccounts;
     }
