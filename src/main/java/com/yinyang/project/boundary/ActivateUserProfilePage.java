@@ -1,6 +1,7 @@
 package com.yinyang.project.boundary;
 
 import com.yinyang.project.controller.ActivateUserProfileController;
+import com.yinyang.project.entity.UserProfile;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ public class ActivateUserProfilePage {
     private ActivateUserProfileController activateUserProfileController;
 
     @PatchMapping
-    public boolean activateUserProfile(@Valid @NotNull String userProfileName) {
+    public boolean activateUserProfile(@Valid @NotNull UserProfile.Name userProfileName) {
         return activateUserProfileController.activateUserProfile(userProfileName);
     }
 }

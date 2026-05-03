@@ -11,7 +11,7 @@ public class ActivateUserProfileController {
 
     private UserProfile userProfile;
 
-    public boolean activateUserProfile(String userProfileName) {
+    public boolean activateUserProfile(UserProfile.Name userProfileName) {
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         if (currentUserRole == UserProfile.Name.ADMIN) {
