@@ -87,32 +87,41 @@ public class UserAccount {
         }
     }
 
-    public UserAccount getUserAccountByEmail(String email) {
-        String sql = "SELECT * FROM user_account where email = ?";
-        try {
-            return DBContext.getJdbcTemplate().queryForObject(
-                    sql,
-                    new Object[]{email},
-                    (rs, rowNum) -> {
-                        UserAccount userAccount = new UserAccount();
-                        userAccount.setId(rs.getInt("id"));
-                        userAccount.setUsername(rs.getString("username"));
-                        userAccount.setPassword(rs.getString("password"));
-                        userAccount.setEmail(rs.getString("email"));
-                        userAccount.setAddress(rs.getString("address"));
-                        userAccount.setStatus(Status.valueOf(rs.getString("status")));
-                        userAccount.setUserProfileName(UserProfile.Name.valueOf(rs.getString("user_profile_name")));
-                        userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-                        return userAccount;
-                    }
-            );
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
+    public boolean isUsernameTakenByOthers(String username, int id) {
+        String sql = "SELECT COUNT(*) FROM user_account WHERE username = ? AND id != ?";
+        Integer count = DBContext.getJdbcTemplate().queryForObject(
+                sql,
+                Integer.class,
+                username,
+                id
+        );
+        return count != null && count > 0;
+    }
+
+    public boolean isEmailTakenByOthers(String email, int id) {
+        String sql = "SELECT COUNT(*) FROM user_account WHERE email = ? AND id != ?";
+        Integer count = DBContext.getJdbcTemplate().queryForObject(
+                sql,
+                Integer.class,
+                email,
+                id
+        );
+        return count != null && count > 0;
+    }
+
+    public boolean isUserAccountExists(String username, String email) {
+        String sql = "SELECT COUNT(*) FROM user_account WHERE username = ? OR email = ?";
+        Integer count = DBContext.getJdbcTemplate().queryForObject(
+                sql,
+                Integer.class,
+                username,
+                email
+        );
+        return count != null && count > 0;
     }
 
     public boolean createUserAccount(UserAccount userAccountData) {
-        if (this.getUserAccountByUsername(userAccountData.getUsername()) == null && this.getUserAccountByEmail(userAccountData.getEmail()) == null) {
+        if (!this.isUserAccountExists(userAccountData.getUsername(), userAccountData.getEmail())) {
             String sql = "INSERT INTO user_account (username, password, email, address, status, user_profile_name, created_at) values (?, ?, ?, ?, ?, ?, ?)";
             DBContext.getJdbcTemplate().update(
                     sql,
@@ -151,7 +160,7 @@ public class UserAccount {
 
 
     public boolean updateUserAccount(UserAccount newUserAccountData) {
-        if (this.getUserAccountByUsername(newUserAccountData.getUsername()) == null && this.getUserAccountByEmail(newUserAccountData.getEmail()) == null) {
+        if (!this.isUsernameTakenByOthers(newUserAccountData.getUsername(), newUserAccountData.getId()) && !this.isEmailTakenByOthers(newUserAccountData.getEmail(), newUserAccountData.getId())) {
             String sql = "UPDATE user_account SET username = ?, password = ?, email = ?, address = ?, user_profile_name = ? WHERE id = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
