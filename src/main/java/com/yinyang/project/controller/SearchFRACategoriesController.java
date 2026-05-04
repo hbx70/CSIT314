@@ -11,17 +11,17 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class SearchFRACategoryController {
+public class SearchFRACategoriesController {
 
     private FRACategory fraCategory;
 
-    public List<FRACategory> searchFRACategory(String name, String description, FRACategory.Status status, @NotNull String order) {
+    public List<FRACategory> searchFRACategories(String name, String description, FRACategory.Status status, @NotNull String order) {
         List<FRACategory> fraCategoryList = new ArrayList<>();
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         if (currentUserRole == UserProfile.Name.PLATFORM_MANAGER) {
             fraCategory = new FRACategory();
-            fraCategoryList = fraCategory.searchFRACategory(name.toUpperCase(), description, status, order);
+            fraCategoryList = fraCategory.searchFRACategories(name.toUpperCase(), description, status, order);
         }
         return fraCategoryList;
     }

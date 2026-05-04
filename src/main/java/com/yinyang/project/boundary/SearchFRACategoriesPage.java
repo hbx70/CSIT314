@@ -1,6 +1,6 @@
 package com.yinyang.project.boundary;
 
-import com.yinyang.project.controller.SearchFRACategoryController;
+import com.yinyang.project.controller.SearchFRACategoriesController;
 import com.yinyang.project.entity.FRACategory;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +15,14 @@ import java.util.List;
 @RestController
 @Validated
 @RequestMapping("/fra/category/search")
-public class SearchFRACategoryPage {
+public class SearchFRACategoriesPage {
 
     @Autowired
-    private SearchFRACategoryController searchFRACategoryController;
+    private SearchFRACategoriesController searchFRACategoriesController;
 
     @GetMapping
-    public List<FRACategory> searchFRACategory(@RequestParam(required = false) String name, @RequestParam(required = false) String description, @RequestParam(required = false) FRACategory.Status status, @NotBlank String order) {
-        return searchFRACategoryController.searchFRACategory(name, description, status, order);
+    public List<FRACategory> searchFRACategories(@RequestParam(required = false) String name, @RequestParam(required = false) String description, @RequestParam(required = false) FRACategory.Status status, @NotBlank String order) {
+        return searchFRACategoriesController.searchFRACategories(name, description, status, order);
     }
 
 }

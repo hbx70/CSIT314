@@ -124,7 +124,7 @@ public class FRACategory {
         return false;
     }
 
-    public List<FRACategory> searchFRACategory(String name, String description, Status status, @NotNull String order) {
+    public List<FRACategory> searchFRACategories(String name, String description, Status status, @NotNull String order) {
         StringBuilder sql = new StringBuilder("SELECT * FROM fra_category WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
