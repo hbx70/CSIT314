@@ -12,6 +12,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -143,6 +144,66 @@ public class FundRaisingActivity {
                 newFundRaisingActivityData.getId()
         );
         return row == 1;
+    }
+
+    public List<FundRaisingActivityResponse> searchFundRaisingActivities(String title, Status status, Integer categoryId, @NotBlank String order, Integer currentUserId) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT fra.*, " +
+                "ua.username AS creator_name, ua.user_profile_name AS creator_role, ua.status AS creator_account_status, " +
+                "frac.name AS category_name, frac.status AS category_status " +
+                "FROM fund_raising_activity fra " +
+                "LEFT JOIN user_account ua ON fra.created_by = ua.id " +
+                "LEFT JOIN fra_category frac ON fra.category_id = frac.id " +
+                "WHERE 1 = 1"
+        );
+        List<Object> params = new ArrayList<>();
+
+        sql.append(" AND created_by = ?");
+        params.add(currentUserId);
+
+        if (title != null && !title.isEmpty()) {
+            sql.append(" AND title LIKE ?");
+            params.add("%" + title + "%");
+        }
+
+        if (status != null) {
+            sql.append(" AND status = ?");
+            params.add(status.name());
+        }
+
+        if (categoryId != null) {
+            sql.append(" AND category_id = ?");
+            params.add(categoryId);
+        }
+
+        String orderDirection = "DESC";
+        if ("asc".equalsIgnoreCase(order)) {
+            orderDirection = "ASC";
+        }
+        sql.append(" ORDER BY created_at ").append(orderDirection);
+
+        return DBContext.getJdbcTemplate().query(
+                sql.toString(),
+                params.toArray(),
+                (rs, rowNum) -> {
+                    FundRaisingActivityResponse fundRaisingActivityResponse = new FundRaisingActivityResponse();
+                    fundRaisingActivityResponse.setId(rs.getInt("id"));
+                    fundRaisingActivityResponse.setTitle(rs.getString("title"));
+                    fundRaisingActivityResponse.setDescription(rs.getString("description"));
+                    fundRaisingActivityResponse.setViewCount(rs.getInt("view_count"));
+                    fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
+                    fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
+                    fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
+                    fundRaisingActivityResponse.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
+                    fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                    fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
+                    fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
+                    fundRaisingActivityResponse.setCreatorAccountStatus(UserAccount.Status.valueOf(rs.getString("creator_account_status")));
+                    fundRaisingActivityResponse.setCategoryName(rs.getString("category_name"));
+                    fundRaisingActivityResponse.setCategoryStatus(FRACategory.Status.valueOf(rs.getString("category_status")));
+                    return fundRaisingActivityResponse;
+                }
+        );
     }
 
     public boolean suspendFundRaisingActivity(@NotNull Integer fundRaisingActivityId) {
