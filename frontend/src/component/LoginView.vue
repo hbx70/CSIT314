@@ -21,12 +21,12 @@
                     <div class="input-stack">
                         <div class="input-group">
                             <label>Username</label>
-                            <input v-model="loginData.username" type="text" placeholder="Username" />
+                            <input v-model="loginData.username" type="text" placeholder="Username" @keyup.enter="handleLogin" />
                         </div>
 
                         <div class="input-group">
                             <label>Password</label>
-                            <input v-model="loginData.password" type="password" placeholder="••••••••" />
+                            <input v-model="loginData.password" type="password" placeholder="••••••••" @keyup.enter="handleLogin" />
                         </div>
                     </div>
 
@@ -47,18 +47,23 @@ import { useTokenStore } from '@/stores/token'
 import { useUserInfoStore } from '@/stores/userInfo.js';
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus' // 假设你使用了 Element Plus 提供更好的反馈
 
 const router = useRouter()
-const routes = {
-    'ADMIN': '/admin',
-    'DONEE': '/donee',
-    'FUND_RAISER': '/fundraiser',
-    'PLATFORM_MANAGER': '/manager'
-}
-
-
 const tokenStore = useTokenStore();
 const userInfoStore = useUserInfoStore()
+
+// 合并后的路由映射表 (涵盖了代码 A 的大写 KEY 和代码 B 的首字母大写 KEY)
+const routes = {
+    'ADMIN': '/admin',
+    'Administrator': '/admin',
+    'DONEE': '/donee',
+    'Donee': '/donee',
+    'FUND_RAISER': '/fundraiser',
+    'Fund Raiser': '/fundraiser',
+    'PLATFORM_MANAGER': '/manager',
+    'Platform Manager': '/manager'
+}
 
 const loginData = ref({
     username: '',
@@ -66,18 +71,63 @@ const loginData = ref({
 })
 
 const handleLogin = async () => {
-    const token = await loginService(loginData.value.username.trim(), loginData.value.password.trim())
-    tokenStore.setToken(token);
-    const currUserInfo = await getCurrentUserService();
-    userInfoStore.setInfo(currUserInfo);
-    const targetPath = routes[userInfoStore.info.userProfileName] || '/'
-    router.push(targetPath)
+    const username = loginData.value.username.trim();
+    const password = loginData.value.password.trim();
+
+    if (!username || !password) {
+        return ElMessage.warning('Please enter credentials');
+    }
+
+    try {
+        // --- 策略 1: 尝试后端 API 登录 (代码 A 原逻辑) ---
+        const token = await loginService(username, password)
+        
+        if (token) {
+            tokenStore.setToken(token);
+            const currUserInfo = await getCurrentUserService();
+            userInfoStore.setInfo(currUserInfo);
+            
+            const targetPath = routes[currUserInfo.userProfileName] || '/'
+            router.push(targetPath)
+            return; // 登录成功，退出函数
+        }
+    } catch (error) {
+        console.warn("API Login failed, trying local storage...");
+        // 如果后端报错，不直接报错，继续尝试本地查找
+    }
+
+    // --- 策略 2: 尝试本地存储查找 (代码 B 新增逻辑) ---
+    const localUsers = JSON.parse(localStorage.getItem('app_users') || '[]')
+    const matchedUser = localUsers.find(u => u.username === username && u.password === password)
+
+    if (matchedUser) {
+        // 模拟登录成功，将用户信息存入 store
+        // 注意：本地模拟通常没有 Token，这里根据需求可以设为一个固定值或空
+        tokenStore.setToken('mock-token-for-demo'); 
+        userInfoStore.setInfo({
+            username: matchedUser.username,
+            userProfileName: matchedUser.role // 代码 B 使用的是 role 字段
+        });
+        
+        // 保存当前用户状态（代码 B 的逻辑）
+        localStorage.setItem('currentUser', JSON.stringify(matchedUser))
+        
+        const targetPath = routes[matchedUser.role] || '/'
+        router.push(targetPath)
+        ElMessage.success('Logged in via local storage (Demo Mode)');
+    } else {
+        // --- 策略 3: 全部失败 ---
+        ElMessage.error('Invalid credentials. Please contact your system administrator.');
+    }
+
+    // 清空表单
     loginData.value.username = ''
     loginData.value.password = ''
 }
 </script>
 
 <style scoped>
+/* 样式保持第一个代码的高级感，不做变动 */
 .auth-page {
     min-height: 100vh;
     display: flex;
@@ -174,6 +224,12 @@ const handleLogin = async () => {
     border-radius: 12px;
     font-size: 15px;
     box-sizing: border-box;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 .btn-primary {
