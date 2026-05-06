@@ -15,22 +15,22 @@ const router = createRouter({
     {
       path: "/admin",
       component: AdminView,
-    //   meta: { requiresAuth: true, role: "ADMIN" },
+      //   meta: { requiresAuth: true, role: "ADMIN" },
     },
     {
       path: "/donee",
       component: DoneeView,
-    //   meta: { requiresAuth: true, role: "DONEE" },
+      //   meta: { requiresAuth: true, role: "DONEE" },
     },
     {
       path: "/fundraiser",
       component: FundRaiserView,
-    //   meta: { requiresAuth: true, role: "FUND_RAISER" },
+      //   meta: { requiresAuth: true, role: "FUND_RAISER" },
     },
     {
       path: "/manager",
       component: PlatformManagerView,
-    //   meta: { requiresAuth: true, role: "PLATFORM_MANAGER" },
+      //   meta: { requiresAuth: true, role: "PLATFORM_MANAGER" },
     },
   ],
 });

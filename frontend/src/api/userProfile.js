@@ -1,5 +1,5 @@
 import request from '@/utils/request.js'
 
-export const getAllUserAccountsService = () => {
-    return request.get("/user/account")
+export const getAllUserProfilesService = () => {
+    return request.get("/user/profile")
 }

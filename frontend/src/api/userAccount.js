@@ -12,6 +12,10 @@ export const getCurrentUserService = () => {
     return request.get("/user/info")
 }
 
+export const getAllUserAccountsService = () => {
+    return request.get("/user/account")
+}
+
 export const suspendUserAccountService = (userAccountId) => {
     return request.patch("/user/account/suspend?userAccountId=" + userAccountId)
 }
@@ -26,4 +30,15 @@ export const createUserAccountService = (userAccountData) => {
 
 export const updateUserAccountService = (newUserAccountData) => {
     return request.put("/user/account/update", newUserAccountData)
+}
+
+export const searchUserAccountsService = (username, email, address, userProfileName, status, order) => {
+    return request.get("/user/account/search", {params: {
+        username: username,
+        email: email,
+        address: address,
+        userProfileName: userProfileName,
+        status: status,
+        order: order
+    }})
 }

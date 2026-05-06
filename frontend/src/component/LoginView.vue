@@ -45,6 +45,7 @@
 import { getCurrentUserService, loginService } from '@/api/userAccount.js'
 import { useTokenStore } from '@/stores/token'
 import { useUserInfoStore } from '@/stores/userInfo.js';
+import { ElMessage } from 'element-plus';
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -67,6 +68,8 @@ const loginData = ref({
 
 const handleLogin = async () => {
     const token = await loginService(loginData.value.username.trim(), loginData.value.password.trim())
+    if (!token) return ElMessage.error("Invalid username or password")
+    ElMessage.success("Welcome")
     tokenStore.setToken(token);
     const currUserInfo = await getCurrentUserService();
     userInfoStore.setInfo(currUserInfo);

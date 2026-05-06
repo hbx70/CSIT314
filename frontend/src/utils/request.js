@@ -33,7 +33,7 @@ instance.interceptors.response.use(
             const userInfoStore = useUserInfoStore();
             userInfoStore.removeInfo();
         } else {
-            ElMessage.error(err.message ? err.message : "server error")
+            ElMessage.error("Please Login")
         }
         return Promise.reject(err);
     }

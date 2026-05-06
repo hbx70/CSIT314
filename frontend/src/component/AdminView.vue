@@ -1,11 +1,5 @@
 <template>
     <div class="admin-dashboard">
-        <transition name="toast-pop">
-            <div v-if="toastMsg" class="premium-toast">
-                <div class="toast-indicator"></div>
-                <span class="toast-text">{{ toastMsg }}</span>
-            </div>
-        </transition>
 
         <header class="dashboard-header">
             <div class="header-content">
@@ -25,6 +19,47 @@
             </div>
         </header>
 
+        <div class="filterBlockContainer">
+            <div class="filterContainer">
+                <div class="radioGroupContainer">
+                    <p>Order</p>
+                    <el-radio-group v-model="filter.order" size="large" fill="#409eff" @change="searchUserProfiles">
+                        <el-radio-button label="Ascending" value="ASC" />
+                        <el-radio-button label="Descending" value="DESC" />
+                    </el-radio-group>
+                </div>
+                <div class="radioGroupContainer">
+                    <p>Status</p>
+                    <el-radio-group v-model="filter.status" size="large" fill="#409eff" @change="searchUserProfiles">
+                        <el-radio-button label="ALL" value="all" />
+                        <el-radio-button label="ACTIVE" value="ACTIVE" />
+                        <el-radio-button label="SUSPENDED" value="SUSPENDED" />
+                    </el-radio-group>
+                </div>
+                <div class="radioGroupContainer">
+                    <p>User Profile</p>
+                    <el-radio-group v-model="filter.userProfileName" size="large" fill="#409eff" @change="searchUserProfiles">
+                        <el-radio-button label="ALL" value="all" />
+                        <el-radio-button :label="userProfile.name" :value="userProfile.name" :key="index" v-for="(userProfile, index) in userProfiles"/>
+                    </el-radio-group>
+                </div>
+            </div>
+            <div class="filterContainer">
+                <div class="radioGroupContainer">
+                    <p>Username</p>
+                    <el-input v-model="filter.username" size="large" style="width: 240px" placeholder="Search username" @input="searchUserProfiles"/>
+                </div>
+                <div class="radioGroupContainer">
+                    <p>Email</p>
+                    <el-input v-model="filter.email" size="large" style="width: 240px" placeholder="Search user email" @input="searchUserProfiles"/>
+                </div>
+                <div class="radioGroupContainer">
+                    <p>Address</p>
+                    <el-input v-model="filter.address" size="large" style="width: 240px" placeholder="Search user address" @input="searchUserProfiles"/>
+                </div>
+            </div>
+        </div>
+
         <main class="content-area">
             <div class="glass-card">
                 <table class="premium-table">
@@ -43,11 +78,12 @@
                             <td>
                                 <div :class="['status-marker', user.status === 'ACTIVE' ? 'st-active' : 'st-locked']"></div>
                             </td>
+                            <td><span class="u-info">{{ formatTime(user.createdAt) }}</span></td>
                             <td><span class="u-name">{{ user.username }}</span></td>
                             <td><span class="u-info">{{ user.email || '—' }}</span></td>
                             <td><span class="u-info truncate">{{ user.address || '—' }}</span></td>
                             <td>
-                                <el-tag type="primary">{{ user.userProfileName }}</el-tag>
+                                <el-tag :type="user.userProfileName === 'ADMIN' ? 'primary' : user.userProfileName === 'PLATFORM_MANAGER' ? 'success' : user.userProfileName === 'DONEE' ? 'info' : 'warning'" size="large">{{ user.userProfileName }}</el-tag>
                             </td>
                             <td>
                                 <div class="action-row">
@@ -121,9 +157,9 @@
 
 <script setup>
 import { Edit, Lock, Unlock} from '@element-plus/icons-vue'
-import { getAllUserAccountsService } from '@/api/userProfile'
+import { getAllUserProfilesService } from '@/api/userProfile'
 import { ref, onMounted } from 'vue'
-import { activateUserAccountService, createUserAccountService, suspendUserAccountService, updateUserAccountService } from '@/api/userAccount'
+import { activateUserAccountService, createUserAccountService, getAllUserAccountsService, searchUserAccountsService, suspendUserAccountService, updateUserAccountService } from '@/api/userAccount'
 import { ElMessage } from 'element-plus'
 
 const allUsers = ref([])
@@ -131,7 +167,30 @@ const showModal = ref(false)
 const isEdit = ref(false)
 const targetIndex = ref(null)
 const targetUserAccountId = ref(null)
-const toastMsg = ref('')
+const userProfiles = ref()
+const filter = ref({
+    username: '',
+    email: '',
+    address: '',
+    userProfileName: 'all',
+    status: 'all',
+    order: 'DESC'
+})
+
+import dayjs from 'dayjs'
+const formatTime = (time) => {
+    return dayjs(time).format("YYYY-MM-DD HH:mm:ss")
+}
+
+const getAllUserProfiles = async () => {
+    const userProfilesData = await getAllUserProfilesService();
+    userProfiles.value = userProfilesData;    
+}
+
+const searchUserProfiles = async () => {
+    const userData = await searchUserAccountsService(filter.value.username.trim(), filter.value.email.trim(), filter.value.address.trim(), filter.value.userProfileName === 'all' ? null : filter.value.userProfileName, filter.value.status === 'all' ? null : filter.value.status, filter.value.order)
+    allUsers.value = userData;
+}
 
 const form = ref({ username: '', password: '', email: '', address: '', userProfileName: ''})
 
@@ -144,6 +203,7 @@ const getAllUserAccounts = async () => {
 
 onMounted(() => {
     getAllUserAccounts()
+    getAllUserProfiles()
 })
 
 const suspendUser = async (user) => {
@@ -183,6 +243,8 @@ const openEditor = (index, userAccountId) => {
     targetIndex.value = index
     targetUserAccountId.value = userAccountId
     form.value = { ...allUsers.value[index] }
+    console.log(form.value);
+    
     showModal.value = true
 }
 
@@ -194,16 +256,15 @@ const closeModal = () => {
 const submitForm = async () => {
     const { username, password, email, address, userProfileName } = form.value
     if (username.trim().length < 3 || username.trim().length > 16) return ElMessage.error('Username: 3-16 chars')
-    if (password === null ? false : password.trim().length < 6) return ElMessage.error('Password: Min 6 chars')
+    if (password ? password.trim().length < 6 : true) return ElMessage.error('Password: Min 6 chars')
     if (email.trim().length <= 0) return ElMessage.error('Please enter email')
     if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim())) return ElMessage.error('Please enter valid email')
     if (address.trim().length <= 0) return ElMessage.error('Please enter address')
     if (userProfileName.trim().length <= 0) return ElMessage.error('Please selete user profile')
 
-    if (allUsers.value.some(u => u.username === username.trim())) return ElMessage.error('Username taken');
-    if (allUsers.value.some(u => u.email === email.trim())) return ElMessage.error('Email taken');
-
     if (isEdit.value) {
+        if (allUsers.value.some(u => u.username === username.trim() && u.id !== targetUserAccountId.value)) return ElMessage.error('Username has been token by others');
+        if (allUsers.value.some(u => u.email === email.trim() && u.id !== targetUserAccountId.value)) return ElMessage.error('Email has been token by others');
         const newUserAccountData = {...form.value, id: targetUserAccountId.value}
         const isUpdated = await updateUserAccountService(newUserAccountData);
         if (isUpdated) {
@@ -212,6 +273,8 @@ const submitForm = async () => {
             ElMessage.error("Operation failure")
         }
     } else {
+        if (allUsers.value.some(u => u.username === username.trim())) return ElMessage.error('Username has been occupied');
+        if (allUsers.value.some(u => u.email === email.trim())) return ElMessage.error('Email has been occupied');
         const isCreated = await createUserAccountService(form.value);
         if (isCreated) {
             ElMessage.success("Created account")
@@ -226,18 +289,33 @@ const submitForm = async () => {
 
 <style scoped>
 /* 引入现代字体 */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap'); */
+
+.filterBlockContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filterContainer {
+    display: flex;
+    gap: 10px;
+}
+
+.radioGroupContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
 
 .admin-dashboard {
     padding: 50px 80px;
     background: #fcfcfd;
     min-height: 100vh;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-}
-
-/* 头部设计 */
-.dashboard-header {
-    margin-bottom: 40px;
+    /* font-family: 'Plus Jakarta Sans', sans-serif; */
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
 }
 
 .header-content {
@@ -301,7 +379,7 @@ const submitForm = async () => {
 .glass-card {
     background: white;
     border-radius: 24px;
-    border: 1px solid #f1f5f9;
+    border: 1px solid #DCDFE6;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
     overflow: hidden;
 }
@@ -323,8 +401,16 @@ const submitForm = async () => {
 
 .premium-table td {
     padding: 20px;
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid #EBEEF5;
     font-size: 14px;
+}
+
+.premium-table tr {
+    transition: background-color 0.3s ease;
+}
+
+.premium-table tr:hover {
+    background-color: #F5F7FA;
 }
 
 .u-name {
