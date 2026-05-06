@@ -1,5 +1,6 @@
 package com.yinyang.project.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yinyang.project.DBContext;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -65,6 +66,7 @@ public class UserProfile {
         return false;
     }
 
+    @JsonIgnore
     public List<UserProfile> getAllUserProfiles() {
         String sql = "SELECT * FROM user_profile ORDER BY created_at DESC";
         return DBContext.getJdbcTemplate().query(

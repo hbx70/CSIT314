@@ -220,6 +220,7 @@ public class UserAccount {
                     userAccount.setUsername(rs.getString("username"));
                     userAccount.setPassword(null);
                     userAccount.setEmail(rs.getString("email"));
+                    userAccount.setAddress(rs.getString("address"));
                     userAccount.setStatus(Status.valueOf(rs.getString("status")));
                     userAccount.setUserProfileName(UserProfile.Name.valueOf(rs.getString("user_profile_name")));
                     userAccount.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
