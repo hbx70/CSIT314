@@ -158,21 +158,21 @@ public class FundRaisingActivity {
         );
         List<Object> params = new ArrayList<>();
 
-        sql.append(" AND created_by = ?");
+        sql.append(" AND fra.created_by = ?");
         params.add(currentUserId);
 
         if (title != null && !title.isEmpty()) {
-            sql.append(" AND title LIKE ?");
+            sql.append(" AND fra.title LIKE ?");
             params.add("%" + title + "%");
         }
 
         if (status != null) {
-            sql.append(" AND status = ?");
+            sql.append(" AND fra.status = ?");
             params.add(status.name());
         }
 
         if (categoryId != null) {
-            sql.append(" AND category_id = ?");
+            sql.append(" AND fra.category_id = ?");
             params.add(categoryId);
         }
 
@@ -180,7 +180,7 @@ public class FundRaisingActivity {
         if ("asc".equalsIgnoreCase(order)) {
             orderDirection = "ASC";
         }
-        sql.append(" ORDER BY created_at ").append(orderDirection);
+        sql.append(" ORDER BY fra.created_at ").append(orderDirection);
 
         return DBContext.getJdbcTemplate().query(
                 sql.toString(),
@@ -230,5 +230,108 @@ public class FundRaisingActivity {
             return row == 1;
         }
         return false;
+    }
+
+    public List<FundRaisingActivityResponse> doneeSearchFundRaisingActivities(String title, Integer categoryId, @NotBlank String orderBy) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT fra.*, " +
+                "ua.username AS creator_name, ua.user_profile_name AS creator_role, ua.status AS creator_account_status, " +
+                "frac.name AS category_name, frac.status AS category_status " +
+                "FROM fund_raising_activity fra " +
+                "LEFT JOIN user_account ua ON fra.created_by = ua.id " +
+                "LEFT JOIN fra_category frac ON fra.category_id = frac.id " +
+                "WHERE 1 = 1"
+        );
+        List<Object> params = new ArrayList<>();
+
+        sql.append(" AND fra.status = ?");
+        params.add("ACTIVE");
+
+        if (title != null && !title.isEmpty()) {
+            sql.append(" AND fra.title LIKE ?");
+            params.add("%" + title + "%");
+        }
+
+        if (categoryId != null) {
+            sql.append(" AND fra.category_id = ?");
+            params.add(categoryId);
+        }
+
+        String orderCondition = "fra.created_at";
+        if ("viewCount".equals(orderBy)) {
+            orderCondition = "fra.view_count";
+        }
+        sql.append(" ORDER BY ").append(orderCondition).append(" DESC");
+
+        return DBContext.getJdbcTemplate().query(
+                sql.toString(),
+                params.toArray(),
+                (rs, rowNum) -> {
+                    FundRaisingActivityResponse fundRaisingActivityResponse = new FundRaisingActivityResponse();
+                    fundRaisingActivityResponse.setId(rs.getInt("id"));
+                    fundRaisingActivityResponse.setTitle(rs.getString("title"));
+                    fundRaisingActivityResponse.setDescription(rs.getString("description"));
+                    fundRaisingActivityResponse.setViewCount(rs.getInt("view_count"));
+                    fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
+                    fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
+                    fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
+                    fundRaisingActivityResponse.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
+                    fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                    fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
+                    fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
+                    fundRaisingActivityResponse.setCreatorAccountStatus(UserAccount.Status.valueOf(rs.getString("creator_account_status")));
+                    fundRaisingActivityResponse.setCategoryName(rs.getString("category_name"));
+                    fundRaisingActivityResponse.setCategoryStatus(FRACategory.Status.valueOf(rs.getString("category_status")));
+                    return fundRaisingActivityResponse;
+                }
+        );
+    }
+
+    public FundRaisingActivityResponse viewFundRaisingActivityDetails(@NotNull Integer fundRaisingActivityId) {
+        String sql = "UPDATE fund_raising_activity SET view_count = view_count + 1 WHERE id = ?";
+        int row = DBContext.getJdbcTemplate().update(
+                sql,
+                fundRaisingActivityId
+        );
+        if (row == 1) {
+            return this.getFundRaisingActivityDetailsById(fundRaisingActivityId);
+        }
+        return null;
+    }
+
+    public FundRaisingActivityResponse getFundRaisingActivityDetailsById(@NotNull Integer fundRaisingActivityId) {
+        String sql = "SELECT fra.*, " +
+                "ua.username AS creator_name, ua.user_profile_name AS creator_role, ua.status AS creator_account_status, " +
+                "frac.name AS category_name, frac.status AS category_status " +
+                "FROM fund_raising_activity fra " +
+                "LEFT JOIN user_account ua ON fra.created_by = ua.id " +
+                "LEFT JOIN fra_category frac ON fra.category_id = frac.id " +
+                "WHERE fra.id = ?";
+        try {
+            return DBContext.getJdbcTemplate().queryForObject(
+                    sql,
+                    new Object[]{fundRaisingActivityId},
+                    (rs, rowNum) -> {
+                        FundRaisingActivityResponse fundRaisingActivityResponse = new FundRaisingActivityResponse();
+                        fundRaisingActivityResponse.setId(rs.getInt("id"));
+                        fundRaisingActivityResponse.setTitle(rs.getString("title"));
+                        fundRaisingActivityResponse.setDescription(rs.getString("description"));
+                        fundRaisingActivityResponse.setViewCount(rs.getInt("view_count"));
+                        fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
+                        fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
+                        fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
+                        fundRaisingActivityResponse.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
+                        fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                        fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
+                        fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
+                        fundRaisingActivityResponse.setCreatorAccountStatus(UserAccount.Status.valueOf(rs.getString("creator_account_status")));
+                        fundRaisingActivityResponse.setCategoryName(rs.getString("category_name"));
+                        fundRaisingActivityResponse.setCategoryStatus(FRACategory.Status.valueOf(rs.getString("category_status")));
+                        return fundRaisingActivityResponse;
+                    }
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 }
