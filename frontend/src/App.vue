@@ -10,8 +10,8 @@
                         <span class="nav-label">Profile</span>
                     </div>
 
-                    <div class="nav-item-wrapper" @click="$router.push('/admin/directory')">
-                        <div :class="['nav-btn ad-theme', { active: $route.path === '/admin/directory' }]">AD</div>
+                    <div class="nav-item-wrapper" @click="$router.push('/admin/account')">
+                        <div :class="['nav-btn ad-theme', { active: $route.path === '/admin/account' }]">AD</div>
                         <span class="nav-label">Directory</span>
                     </div>
                 </div>

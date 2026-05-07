@@ -51,7 +51,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const routes = {
-    'ADMIN': '/admin',
+    'ADMIN': '/admin/account',
     'DONEE': '/donee',
     'FUND_RAISER': '/fundraiser',
     'PLATFORM_MANAGER': '/manager'

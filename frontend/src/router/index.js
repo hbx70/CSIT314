@@ -6,6 +6,7 @@ import AdminView from "../component/AdminView.vue";
 import DoneeView from "../component/DoneeView.vue";
 import FundRaiserView from "../component/FundRaiserView.vue";
 import PlatformManagerView from "../component/PlatformManagerView.vue";
+import UserProfile from "@/component/UserProfile.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -13,14 +14,19 @@ const router = createRouter({
     { path: "/", redirect: "/login" },
     { path: "/login", component: LoginView },
     {
-      path: "/admin",
+      path: "/admin/account",
       component: AdminView,
-      //   meta: { requiresAuth: true, role: "ADMIN" },
+      //meta: { requiresAuth: true, role: "ADMIN" },
+    },
+    {
+      path: "/admin/profile",
+      component: UserProfile,
+      //meta: { requiresAuth: true, role: "PROFILE" },
     },
     {
       path: "/donee",
       component: DoneeView,
-      //   meta: { requiresAuth: true, role: "DONEE" },
+      //meta: { requiresAuth: true, role: "DONEE" },
     },
     {
       path: "/fundraiser",

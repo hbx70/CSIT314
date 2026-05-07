@@ -7,7 +7,7 @@
                     <div class="brand-orb"></div>
                     <div class="brand-text">
                         <span class="sub-title">System Management</span>
-                        <h1>Account Management</h1>
+                        <h1>User Account Management</h1>
                     </div>
                 </div>
                 <div class="header-stats">
@@ -66,6 +66,7 @@
                     <thead>
                         <tr>
                             <th width="80">Status</th>
+                            <th>Created At</th>
                             <th>Username</th>
                             <th>Email Address</th>
                             <th>Home Address</th>
@@ -268,7 +269,7 @@ const submitForm = async () => {
         const newUserAccountData = {...form.value, id: targetUserAccountId.value}
         const isUpdated = await updateUserAccountService(newUserAccountData);
         if (isUpdated) {
-            ElMessage.success("updated account")
+            ElMessage.success("updated successfully")
         } else {
             ElMessage.error("Operation failure")
         }
@@ -277,7 +278,7 @@ const submitForm = async () => {
         if (allUsers.value.some(u => u.email === email.trim())) return ElMessage.error('Email has been occupied');
         const isCreated = await createUserAccountService(form.value);
         if (isCreated) {
-            ElMessage.success("Created account")
+            ElMessage.success("Created successfully")
         } else {
             ElMessage.error("Operation failure")
         }
@@ -397,6 +398,7 @@ const submitForm = async () => {
     font-weight: 800;
     color: #94a3b8;
     text-transform: uppercase;
+    border-bottom: 1px solid #EBEEF5;
 }
 
 .premium-table td {
