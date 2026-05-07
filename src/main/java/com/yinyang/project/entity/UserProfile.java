@@ -83,7 +83,7 @@ public class UserProfile {
     }
 
     public boolean updateUserProfile(UserProfile newUserProfile) {
-        if (this.getUserProfileByName(newUserProfile.getName()) == null) {
+        if (this.getUserProfileByName(newUserProfile.getName()) != null) {
             String sql = "UPDATE user_profile SET description = ? WHERE name = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
@@ -153,7 +153,7 @@ public class UserProfile {
             String sql = "UPDATE user_profile SET status = 'ACTIVE' WHERE name = ?";
             int row = DBContext.getJdbcTemplate().update(
                     sql,
-                    userProfileName
+                    userProfileName.name()
             );
             return row == 1;
         }
