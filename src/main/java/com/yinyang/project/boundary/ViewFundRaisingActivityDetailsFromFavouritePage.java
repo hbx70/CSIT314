@@ -1,6 +1,5 @@
 package com.yinyang.project.boundary;
 
-import com.yinyang.project.controller.ViewFundRaisingActivityDetailsController;
 import com.yinyang.project.controller.ViewFundRaisingActivityDetailsFromFavouriteController;
 import com.yinyang.project.dto.FundRaisingActivityResponse;
 import jakarta.validation.constraints.NotBlank;
