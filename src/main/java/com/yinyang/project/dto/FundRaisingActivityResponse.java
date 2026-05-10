@@ -32,6 +32,5 @@ public class FundRaisingActivityResponse {
     private String categoryName;
     private FRACategory.Status categoryStatus;
 
-    private LocalDateTime endDate;
     private LocalDateTime createdAt;
 }

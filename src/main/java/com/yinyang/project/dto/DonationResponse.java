@@ -24,5 +24,4 @@ public class DonationResponse {
     private FundRaisingActivity.Status fraStatus;
     private BigDecimal targetAmount;
     private BigDecimal currentAmount;
-    private LocalDateTime endDate;
 }

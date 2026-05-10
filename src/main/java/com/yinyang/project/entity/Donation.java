@@ -27,10 +27,14 @@ public class Donation {
     private Status status;
     private LocalDateTime createdAt;
 
+    public enum Status {
+        SUCCESS, CANCELLED
+    }
+
     public DonationResponse getDonationDetailsById(@NotNull Integer donationId) {
         String sql =
                 "SELECT d.*, " +
-                "fra.title, fra.view_count, fra.shortlist_count, fra.status AS fra_status, fra.target_amount, fra.current_amount, fra.end_date " +
+                "fra.title, fra.view_count, fra.shortlist_count, fra.status AS fra_status, fra.target_amount, fra.current_amount " +
                 "FROM donation d " +
                 "LEFT JOIN fund_raising_activity fra ON d.fra_id = fra.id " +
                 "WHERE d.id = ?";
@@ -52,17 +56,12 @@ public class Donation {
                         donationResponse.setFraStatus(FundRaisingActivity.Status.valueOf(rs.getString("fra_status")));
                         donationResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                         donationResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
-                        donationResponse.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
                         return donationResponse;
                     }
             );
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
-    }
-
-    public enum Status {
-        SUCCESS, CANCELLED
     }
 
     public void doneeMakeDonation(@Valid Donation donationData) {
@@ -80,7 +79,7 @@ public class Donation {
     public List<DonationResponse> searchDonationHistories(Status status, String title, @NotBlank String orderBy, Integer currentUserId) {
         StringBuilder sql = new StringBuilder(
                 "SELECT d.*, " +
-                "fra.title, fra.view_count, fra.shortlist_count, fra.status AS fra_status, fra.target_amount, fra.current_amount, fra.end_date " +
+                "fra.title, fra.view_count, fra.shortlist_count, fra.status AS fra_status, fra.target_amount, fra.current_amount " +
                 "FROM donation d " +
                 "LEFT JOIN fund_raising_activity fra ON d.fra_id = fra.id " +
                 "WHERE 1 = 1"
@@ -125,7 +124,6 @@ public class Donation {
                     donationResponse.setFraStatus(FundRaisingActivity.Status.valueOf(rs.getString("fra_status")));
                     donationResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                     donationResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
-                    donationResponse.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
                     return donationResponse;
                 }
         );
