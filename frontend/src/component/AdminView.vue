@@ -23,14 +23,14 @@
             <div class="filterContainer">
                 <div class="radioGroupContainer">
                     <p>Order</p>
-                    <el-radio-group v-model="filter.order" size="large" fill="#409eff" @change="searchUserProfiles">
+                    <el-radio-group v-model="filter.order" size="large" fill="#409eff" @change="searchUserAccounts">
                         <el-radio-button label="Ascending" value="ASC" />
                         <el-radio-button label="Descending" value="DESC" />
                     </el-radio-group>
                 </div>
                 <div class="radioGroupContainer">
                     <p>Status</p>
-                    <el-radio-group v-model="filter.status" size="large" fill="#409eff" @change="searchUserProfiles">
+                    <el-radio-group v-model="filter.status" size="large" fill="#409eff" @change="searchUserAccounts">
                         <el-radio-button label="ALL" value="all" />
                         <el-radio-button label="ACTIVE" value="ACTIVE" />
                         <el-radio-button label="SUSPENDED" value="SUSPENDED" />
@@ -38,7 +38,7 @@
                 </div>
                 <div class="radioGroupContainer">
                     <p>User Profile</p>
-                    <el-radio-group v-model="filter.userProfileName" size="large" fill="#409eff" @change="searchUserProfiles">
+                    <el-radio-group v-model="filter.userProfileName" size="large" fill="#409eff" @change="searchUserAccounts">
                         <el-radio-button label="ALL" value="all" />
                         <el-radio-button :label="userProfile.name" :value="userProfile.name" :key="index" v-for="(userProfile, index) in userProfiles"/>
                     </el-radio-group>
@@ -47,15 +47,15 @@
             <div class="filterContainer">
                 <div class="radioGroupContainer">
                     <p>Username</p>
-                    <el-input v-model="filter.username" size="large" style="width: 240px" placeholder="Search username" @input="searchUserProfiles"/>
+                    <el-input v-model="filter.username" size="large" style="width: 240px" placeholder="Search username" @input="searchUserAccounts"/>
                 </div>
                 <div class="radioGroupContainer">
                     <p>Email</p>
-                    <el-input v-model="filter.email" size="large" style="width: 240px" placeholder="Search user email" @input="searchUserProfiles"/>
+                    <el-input v-model="filter.email" size="large" style="width: 240px" placeholder="Search user email" @input="searchUserAccounts"/>
                 </div>
                 <div class="radioGroupContainer">
                     <p>Address</p>
-                    <el-input v-model="filter.address" size="large" style="width: 240px" placeholder="Search user address" @input="searchUserProfiles"/>
+                    <el-input v-model="filter.address" size="large" style="width: 240px" placeholder="Search user address" @input="searchUserAccounts"/>
                 </div>
             </div>
         </div>
@@ -135,10 +135,10 @@
                                 <label>Assign Profile</label>
                                 <select v-model="form.userProfileName">
                                     <option value="" disabled>Select System Role</option>
-                                    <option value="DONEE">Donee</option>
-                                    <option value="FUND_RAISER">Fund Raiser</option>
-                                    <option value="PLATFORM_MANAGER">Platform Manager</option>
-                                    <option value="ADMIN">User Admin</option>
+                                    <option :value="userProfile.name" v-for="(userProfile, index) in userProfiles" :key="index">{{ userProfile.name }}</option>
+                                    <!-- <option value="FUND_RAISER">Fund Raiser</option> -->
+                                    <!-- <option value="PLATFORM_MANAGER">Platform Manager</option> -->
+                                    <!-- <option value="ADMIN">User Admin</option> -->
                                 </select>
                             </div>
                         </div>
@@ -188,7 +188,7 @@ const getAllUserProfiles = async () => {
     userProfiles.value = userProfilesData;    
 }
 
-const searchUserProfiles = async () => {
+const searchUserAccounts = async () => {
     const userData = await searchUserAccountsService(filter.value.username.trim(), filter.value.email.trim(), filter.value.address.trim(), filter.value.userProfileName === 'all' ? null : filter.value.userProfileName, filter.value.status === 'all' ? null : filter.value.status, filter.value.order)
     allUsers.value = userData;
 }
