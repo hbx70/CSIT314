@@ -2,11 +2,11 @@ import { createRouter, createWebHistory } from "vue-router";
 
 // 这里的路径必须和你新建的文件名完全一致
 import LoginView from "../component/LoginView.vue";
-import AdminView from "../component/AdminView.vue";
+import AdminUserAccountView from "../component/AdminUserAccountView.vue";
 import DoneeView from "../component/DoneeView.vue";
 import FundRaiserView from "../component/FundRaiserView.vue";
-import PlatformManagerView from "../component/PlatformManagerView.vue";
-import UserProfile from "@/component/UserProfile.vue";
+import PMCategoryView from "../component/PMCategoryView.vue";
+import AdminUserProfileView from "@/component/AdminUserProfileView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -15,12 +15,12 @@ const router = createRouter({
     { path: "/login", component: LoginView },
     {
       path: "/admin/account",
-      component: AdminView,
+      component: AdminUserAccountView,
       //meta: { requiresAuth: true, role: "ADMIN" },
     },
     {
       path: "/admin/profile",
-      component: UserProfile,
+      component: AdminUserProfileView,
       //meta: { requiresAuth: true, role: "PROFILE" },
     },
     {
@@ -33,11 +33,11 @@ const router = createRouter({
       component: FundRaiserView,
       //   meta: { requiresAuth: true, role: "FUND_RAISER" },
     },
-    {
-      path: "/manager",
-      component: PlatformManagerView,
-      //   meta: { requiresAuth: true, role: "PLATFORM_MANAGER" },
-    },
+    { 
+    path: '/manager/category', 
+    component: PMCategoryView, 
+    // meta: { requiresAuth: true, role: 'Platform Manager', mode: 'category' } 
+  }
   ],
 });
 

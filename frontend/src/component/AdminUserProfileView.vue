@@ -52,7 +52,7 @@
         </div>
 
         <div class="glass-card">
-            <table class="premium-table">
+            <table class="premium-table" v-if="profileList.length !== 0">
                 <thead>
                     <tr>
                         <th width="80">STATUS</th>
@@ -82,6 +82,7 @@
                     </tr>
                 </tbody>
             </table>
+            <el-empty :image-size="200" v-else/>
         </div>
 
         <button class="prime-fab" @click="openCreator">+ Add Profile</button>

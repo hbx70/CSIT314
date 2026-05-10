@@ -19,20 +19,12 @@
 
                     <template v-else-if="userInfoStore.info.userProfileName === 'PLATFORM_MANAGER'">
                         <div class="nav-item-wrapper" @click="$router.push('/manager/category')">
-                            <div :class="['nav-btn', { active: $route.path === '/manager/category' }]">CC</div>
+                            <div :class="['nav-btn', { active: $route.path === '/manager/category' }]"><span class="material-symbols-outlined">category</span></div>
                             <span class="nav-label">Category</span>
                         </div>
                         <div class="nav-item-wrapper" @click="$router.push('/manager/daily')">
-                            <div :class="['nav-btn', { active: $route.path === '/manager/daily' }]">DR</div>
-                            <span class="nav-label">Daily</span>
-                        </div>
-                        <div class="nav-item-wrapper" @click="$router.push('/manager/weekly')">
-                            <div :class="['nav-btn', { active: $route.path === '/manager/weekly' }]">WR</div>
-                            <span class="nav-label">Weekly</span>
-                        </div>
-                        <div class="nav-item-wrapper" @click="$router.push('/manager/monthly')">
-                            <div :class="['nav-btn', { active: $route.path === '/manager/monthly' }]">MR</div>
-                            <span class="nav-label">Monthly</span>
+                            <div :class="['nav-btn', { active: $route.path === '/manager/daily' }]"><span class="material-symbols-outlined">analytics</span></div>
+                            <span class="nav-label">Report</span>
                         </div>
                     </template>
 
