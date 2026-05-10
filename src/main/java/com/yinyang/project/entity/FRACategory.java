@@ -1,5 +1,6 @@
 package com.yinyang.project.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yinyang.project.DBContext;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -94,6 +95,7 @@ public class FRACategory {
         return false;
     }
 
+    @JsonIgnore
     public List<FRACategory> getAllFRACategories() {
         String sql = "SELECT * FROM fra_category ORDER BY created_at DESC";
         return DBContext.getJdbcTemplate().query(

@@ -17,7 +17,7 @@ public class CreateFRACategoryController {
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         if (currentUserRole == UserProfile.Name.PLATFORM_MANAGER) {
             fraCategory = new FRACategory();
-            fraCategoryData.setName(fraCategory.getName().toUpperCase());
+            fraCategoryData.setName(fraCategoryData.getName().toUpperCase());
             fraCategoryData.setStatus(FRACategory.Status.ACTIVE);
             return fraCategory.createFRACategory(fraCategoryData);
         }

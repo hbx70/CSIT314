@@ -37,9 +37,6 @@ public class FundRaisingActivity {
     private Integer createdBy;
     @NotNull
     private Integer categoryId;
-
-    @NotNull
-    private LocalDateTime endDate;
     private LocalDateTime createdAt;
 
     public enum Status {
@@ -64,7 +61,6 @@ public class FundRaisingActivity {
                         fundRaisingActivity.setCurrentAmount(rs.getBigDecimal("current_amount"));
                         fundRaisingActivity.setCreatedBy(rs.getInt("created_by"));
                         fundRaisingActivity.setCategoryId(rs.getInt("category_id"));
-                        fundRaisingActivity.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
                         fundRaisingActivity.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         return fundRaisingActivity;
                     }
@@ -80,7 +76,7 @@ public class FundRaisingActivity {
         boolean isCreatorExist = userAccount.getUserAccountById(fundRaisingActivityData.getCreatedBy()) != null;
         boolean isCategoryExist = fraCategory.getFRACategoryById(fundRaisingActivityData.getCategoryId()) != null;
         if (isCreatorExist && isCategoryExist) {
-            String sql = "INSERT INTO fund_raising_activity (title, description, view_count, shortlist_count, status, target_amount, current_amount, created_by, category_id, end_date, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO fund_raising_activity (title, description, view_count, shortlist_count, status, target_amount, current_amount, created_by, category_id, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             DBContext.getJdbcTemplate().update(
                     sql,
                     fundRaisingActivityData.getTitle(),
@@ -92,7 +88,6 @@ public class FundRaisingActivity {
                     fundRaisingActivityData.getCurrentAmount(),
                     fundRaisingActivityData.getCreatedBy(),
                     fundRaisingActivityData.getCategoryId(),
-                    fundRaisingActivityData.getEndDate(),
                     LocalDateTime.now()
             );
             return true;
@@ -120,7 +115,6 @@ public class FundRaisingActivity {
                     fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
                     fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                     fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
-                    fundRaisingActivityResponse.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
                     fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
                     fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
@@ -133,14 +127,13 @@ public class FundRaisingActivity {
     }
 
     public boolean updateFundRaisingActivity(FundRaisingActivity newFundRaisingActivityData) {
-        String sql = "UPDATE fund_raising_activity SET title = ?, description = ?, target_amount = ?, category_id = ?, end_date = ? WHERE id = ?";
+        String sql = "UPDATE fund_raising_activity SET title = ?, description = ?, target_amount = ?, category_id = ? WHERE id = ?";
         int row = DBContext.getJdbcTemplate().update(
                 sql,
                 newFundRaisingActivityData.getTitle(),
                 newFundRaisingActivityData.getDescription(),
                 newFundRaisingActivityData.getTargetAmount(),
                 newFundRaisingActivityData.getCategoryId(),
-                newFundRaisingActivityData.getEndDate(),
                 newFundRaisingActivityData.getId()
         );
         return row == 1;
@@ -194,7 +187,6 @@ public class FundRaisingActivity {
                     fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
                     fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                     fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
-                    fundRaisingActivityResponse.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
                     fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
                     fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
@@ -275,7 +267,6 @@ public class FundRaisingActivity {
                     fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
                     fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                     fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
-                    fundRaisingActivityResponse.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
                     fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
                     fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
@@ -320,7 +311,6 @@ public class FundRaisingActivity {
                         fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
                         fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                         fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
-                        fundRaisingActivityResponse.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
                         fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
                         fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
