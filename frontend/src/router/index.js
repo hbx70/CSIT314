@@ -2,11 +2,12 @@ import { createRouter, createWebHistory } from "vue-router";
 
 // 这里的路径必须和你新建的文件名完全一致
 import LoginView from "../component/LoginView.vue";
-import AdminView from "../component/AdminView.vue";
+import AdminUserAccountView from "../component/AdminUserAccountView.vue";
 import DoneeView from "../component/DoneeView.vue";
 import FundRaiserView from "../component/FundRaiserView.vue";
-import PlatformManagerView from "../component/PlatformManagerView.vue";
-import UserProfile from "@/component/UserProfile.vue";
+import PMCategoryView from "../component/PMCategoryView.vue";
+import AdminUserProfileView from "@/component/AdminUserProfileView.vue";
+import PMReportView from "@/component/PMReportView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -14,30 +15,34 @@ const router = createRouter({
     { path: "/", redirect: "/login" },
     { path: "/login", component: LoginView },
     {
-      path: "/admin/account",
-      component: AdminView,
-      //meta: { requiresAuth: true, role: "ADMIN" },
+        path: "/admin/account",
+        component: AdminUserAccountView,
+        //meta: { requiresAuth: true, role: "ADMIN" },
     },
     {
-      path: "/admin/profile",
-      component: UserProfile,
-      //meta: { requiresAuth: true, role: "PROFILE" },
+        path: "/admin/profile",
+        component: AdminUserProfileView,
+        //meta: { requiresAuth: true, role: "PROFILE" },
     },
     {
-      path: "/donee",
-      component: DoneeView,
-      //meta: { requiresAuth: true, role: "DONEE" },
+        path: "/donee",
+        component: DoneeView,
+        //meta: { requiresAuth: true, role: "DONEE" },
     },
     {
-      path: "/fundraiser",
-      component: FundRaiserView,
-      //   meta: { requiresAuth: true, role: "FUND_RAISER" },
+        path: "/fundraiser",
+        component: FundRaiserView,
+        //   meta: { requiresAuth: true, role: "FUND_RAISER" },
     },
     {
-      path: "/manager",
-      component: PlatformManagerView,
-      //   meta: { requiresAuth: true, role: "PLATFORM_MANAGER" },
+        path: "/manager/category",
+        component: PMCategoryView,
+        // meta: { requiresAuth: true, role: 'Platform Manager', mode: 'category' }
     },
+    {
+        path: "/manager/report",
+        component: PMReportView
+    }
   ],
 });
 

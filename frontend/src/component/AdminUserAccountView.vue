@@ -62,7 +62,7 @@
 
         <main class="content-area">
             <div class="glass-card">
-                <table class="premium-table">
+                <table class="premium-table" v-if="allUsers.length !== 0">
                     <thead>
                         <tr>
                             <th width="80">Status</th>
@@ -96,6 +96,7 @@
                         </tr>
                     </tbody>
                 </table>
+                <el-empty :image-size="200" v-else/>
             </div>
         </main>
 
@@ -136,9 +137,6 @@
                                 <select v-model="form.userProfileName">
                                     <option value="" disabled>Select System Role</option>
                                     <option :value="userProfile.name" v-for="(userProfile, index) in userProfiles" :key="index">{{ userProfile.name }}</option>
-                                    <!-- <option value="FUND_RAISER">Fund Raiser</option> -->
-                                    <!-- <option value="PLATFORM_MANAGER">Platform Manager</option> -->
-                                    <!-- <option value="ADMIN">User Admin</option> -->
                                 </select>
                             </div>
                         </div>
@@ -312,8 +310,6 @@ const submitForm = async () => {
 .admin-dashboard {
     padding: 50px 80px;
     background: #fcfcfd;
-    min-height: 100vh;
-    /* font-family: 'Plus Jakarta Sans', sans-serif; */
     display: flex;
     flex-direction: column;
     gap: 40px;

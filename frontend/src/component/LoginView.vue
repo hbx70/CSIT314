@@ -54,7 +54,7 @@ const routes = {
     'ADMIN': '/admin/account',
     'DONEE': '/donee',
     'FUND_RAISER': '/fundraiser',
-    'PLATFORM_MANAGER': '/manager'
+    'PLATFORM_MANAGER': '/manager/category'
 }
 
 
