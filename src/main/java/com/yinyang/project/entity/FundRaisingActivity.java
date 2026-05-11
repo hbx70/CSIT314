@@ -2,6 +2,7 @@ package com.yinyang.project.entity;
 
 import com.yinyang.project.DBContext;
 import com.yinyang.project.dto.FundRaisingActivityResponse;
+import com.yinyang.project.dto.PageBean;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -33,7 +34,6 @@ public class FundRaisingActivity {
     private BigDecimal targetAmount;
     private BigDecimal currentAmount;
 
-    @NotNull
     private Integer createdBy;
     @NotNull
     private Integer categoryId;
@@ -71,11 +71,10 @@ public class FundRaisingActivity {
     }
 
     public boolean createFundRaisingActivity(FundRaisingActivity fundRaisingActivityData) {
-        UserAccount userAccount = new UserAccount();
         FRACategory fraCategory = new FRACategory();
-        boolean isCreatorExist = userAccount.getUserAccountById(fundRaisingActivityData.getCreatedBy()) != null;
-        boolean isCategoryExist = fraCategory.getFRACategoryById(fundRaisingActivityData.getCategoryId()) != null;
-        if (isCreatorExist && isCategoryExist) {
+        FRACategory currentCategory = fraCategory.getFRACategoryById(fundRaisingActivityData.getCategoryId());
+        boolean isCategoryValid = currentCategory != null && currentCategory.getStatus() == FRACategory.Status.ACTIVE;
+        if (isCategoryValid) {
             String sql = "INSERT INTO fund_raising_activity (title, description, view_count, shortlist_count, status, target_amount, current_amount, created_by, category_id, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             DBContext.getJdbcTemplate().update(
                     sql,
@@ -95,17 +94,19 @@ public class FundRaisingActivity {
         return false;
     }
 
-    public List<FundRaisingActivityResponse> getAllFundRaisingActivities(Integer currentUserId) {
+    public PageBean<FundRaisingActivityResponse> getAllFundRaisingActivities(Integer currentUserId, Integer pageSize, Integer offset) {
         String sql = "SELECT fra.*, " +
                 "ua.username AS creator_name, ua.user_profile_name AS creator_role, ua.status AS creator_account_status, " +
                 "frac.name AS category_name, frac.status AS category_status " +
                 "FROM fund_raising_activity fra " +
                 "LEFT JOIN user_account ua ON fra.created_by = ua.id " +
                 "LEFT JOIN fra_category frac ON fra.category_id = frac.id " +
-                "WHERE fra.created_by = ? ORDER BY fra.created_at DESC";
-        return DBContext.getJdbcTemplate().query(
+                "WHERE fra.created_by = ? ORDER BY fra.created_at DESC " +
+                "LIMIT ? OFFSET ?";
+        String countSql = "SELECT COUNT(*) FROM fund_raising_activity WHERE created_by = ?";
+        List<FundRaisingActivityResponse> fundRaisingActivityResponseList = DBContext.getJdbcTemplate().query(
                 sql,
-                new Object[]{currentUserId},
+                new Object[]{currentUserId, pageSize, offset},
                 (rs, rowNum) -> {
                     FundRaisingActivityResponse fundRaisingActivityResponse = new FundRaisingActivityResponse();
                     fundRaisingActivityResponse.setId(rs.getInt("id"));
@@ -113,6 +114,7 @@ public class FundRaisingActivity {
                     fundRaisingActivityResponse.setDescription(rs.getString("description"));
                     fundRaisingActivityResponse.setViewCount(rs.getInt("view_count"));
                     fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
+                    fundRaisingActivityResponse.setStatus(Status.valueOf(rs.getString("status")));
                     fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                     fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
                     fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
@@ -124,6 +126,15 @@ public class FundRaisingActivity {
                     return fundRaisingActivityResponse;
                 }
         );
+        Long total = DBContext.getJdbcTemplate().queryForObject(
+                countSql,
+                Long.class,
+                currentUserId
+        );
+        PageBean<FundRaisingActivityResponse> pb = new PageBean<>();
+        pb.setItems(fundRaisingActivityResponseList);
+        pb.setTotal(total);
+        return pb;
     }
 
     public boolean updateFundRaisingActivity(FundRaisingActivity newFundRaisingActivityData) {
@@ -185,6 +196,7 @@ public class FundRaisingActivity {
                     fundRaisingActivityResponse.setDescription(rs.getString("description"));
                     fundRaisingActivityResponse.setViewCount(rs.getInt("view_count"));
                     fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
+                    fundRaisingActivityResponse.setStatus(Status.valueOf(rs.getString("status")));
                     fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                     fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
                     fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
@@ -265,6 +277,7 @@ public class FundRaisingActivity {
                     fundRaisingActivityResponse.setDescription(rs.getString("description"));
                     fundRaisingActivityResponse.setViewCount(rs.getInt("view_count"));
                     fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
+                    fundRaisingActivityResponse.setStatus(Status.valueOf(rs.getString("status")));
                     fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                     fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
                     fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
@@ -309,6 +322,7 @@ public class FundRaisingActivity {
                         fundRaisingActivityResponse.setDescription(rs.getString("description"));
                         fundRaisingActivityResponse.setViewCount(rs.getInt("view_count"));
                         fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
+                        fundRaisingActivityResponse.setStatus(Status.valueOf(rs.getString("status")));
                         fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                         fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
                         fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());

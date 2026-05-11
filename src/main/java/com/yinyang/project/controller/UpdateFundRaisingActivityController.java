@@ -17,10 +17,12 @@ public class UpdateFundRaisingActivityController {
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         if (currentUserRole == UserProfile.Name.FUND_RAISER && newFundRaisingActivityData.getId() != null) {
+            System.out.println("FR + valid");
             fundRaisingActivity = new FundRaisingActivity();
             newFundRaisingActivityData.setTargetAmount(newFundRaisingActivityData.getTargetAmount().setScale(2, RoundingMode.HALF_UP));
             return fundRaisingActivity.updateFundRaisingActivity(newFundRaisingActivityData);
         }
+        System.out.println("FR + not valid");
         return false;
     }
 }

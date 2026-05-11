@@ -23,5 +23,4 @@ public class ViewAllFundRaisingActivitiesPage {
     public PageBean<FundRaisingActivityResponse> getAllFundRaisingActivities(@NotNull Integer pageNum, @NotNull Integer pageSize) {
         return viewAllFundRaisingActivitiesController.getAllFundRaisingActivities(pageNum, pageSize);
     }
-
 }

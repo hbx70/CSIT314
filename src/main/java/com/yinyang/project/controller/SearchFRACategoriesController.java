@@ -19,7 +19,7 @@ public class SearchFRACategoriesController {
         List<FRACategory> fraCategoryList = new ArrayList<>();
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
-        if (currentUserRole == UserProfile.Name.PLATFORM_MANAGER) {
+        if (currentUserRole == UserProfile.Name.PLATFORM_MANAGER || currentUserRole == UserProfile.Name.FUND_RAISER) {
             fraCategory = new FRACategory();
             fraCategoryList = fraCategory.searchFRACategories(name.toUpperCase(), description, status, order);
         }
