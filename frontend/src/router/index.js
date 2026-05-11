@@ -3,7 +3,6 @@ import { createRouter, createWebHistory } from "vue-router";
 // 这里的路径必须和你新建的文件名完全一致
 import LoginView from "../component/LoginView.vue";
 import AdminUserAccountView from "../component/AdminUserAccountView.vue";
-import DoneeView from "../component/DoneeView.vue";
 import FundRaiserView from "../component/FundRaiserView.vue";
 import PMCategoryView from "../component/PMCategoryView.vue";
 import AdminUserProfileView from "@/component/AdminUserProfileView.vue";
