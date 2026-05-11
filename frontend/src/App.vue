@@ -22,8 +22,8 @@
                             <div :class="['nav-btn', { active: $route.path === '/manager/category' }]"><span class="material-symbols-outlined">category</span></div>
                             <span class="nav-label">Category</span>
                         </div>
-                        <div class="nav-item-wrapper" @click="$router.push('/manager/daily')">
-                            <div :class="['nav-btn', { active: $route.path === '/manager/daily' }]"><span class="material-symbols-outlined">analytics</span></div>
+                        <div class="nav-item-wrapper" @click="$router.push('/manager/report')">
+                            <div :class="['nav-btn', { active: $route.path === '/manager/report' }]"><span class="material-symbols-outlined">analytics</span></div>
                             <span class="nav-label">Report</span>
                         </div>
                     </template>

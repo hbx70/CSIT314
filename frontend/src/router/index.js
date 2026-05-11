@@ -7,6 +7,7 @@ import DoneeView from "../component/DoneeView.vue";
 import FundRaiserView from "../component/FundRaiserView.vue";
 import PMCategoryView from "../component/PMCategoryView.vue";
 import AdminUserProfileView from "@/component/AdminUserProfileView.vue";
+import PMReportView from "@/component/PMReportView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -14,30 +15,34 @@ const router = createRouter({
     { path: "/", redirect: "/login" },
     { path: "/login", component: LoginView },
     {
-      path: "/admin/account",
-      component: AdminUserAccountView,
-      //meta: { requiresAuth: true, role: "ADMIN" },
+        path: "/admin/account",
+        component: AdminUserAccountView,
+        //meta: { requiresAuth: true, role: "ADMIN" },
     },
     {
-      path: "/admin/profile",
-      component: AdminUserProfileView,
-      //meta: { requiresAuth: true, role: "PROFILE" },
+        path: "/admin/profile",
+        component: AdminUserProfileView,
+        //meta: { requiresAuth: true, role: "PROFILE" },
     },
     {
-      path: "/donee",
-      component: DoneeView,
-      //meta: { requiresAuth: true, role: "DONEE" },
+        path: "/donee",
+        component: DoneeView,
+        //meta: { requiresAuth: true, role: "DONEE" },
     },
     {
-      path: "/fundraiser",
-      component: FundRaiserView,
-      //   meta: { requiresAuth: true, role: "FUND_RAISER" },
+        path: "/fundraiser",
+        component: FundRaiserView,
+        //   meta: { requiresAuth: true, role: "FUND_RAISER" },
     },
-    { 
-    path: '/manager/category', 
-    component: PMCategoryView, 
-    // meta: { requiresAuth: true, role: 'Platform Manager', mode: 'category' } 
-  }
+    {
+        path: "/manager/category",
+        component: PMCategoryView,
+        // meta: { requiresAuth: true, role: 'Platform Manager', mode: 'category' }
+    },
+    {
+        path: "/manager/report",
+        component: PMReportView
+    }
   ],
 });
 

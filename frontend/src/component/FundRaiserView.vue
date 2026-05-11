@@ -5,12 +5,12 @@
                 <h1>Campaign Dashboard</h1>
                 <p>Manage and track your fundraising impact</p>
             </div>
-            <button class="actionItem primary" @click="showModal = true">
+            <button class="actionItem primary" @click="openCreateDrawer">
                 <span class="plusIcon">+</span> New Campaign
             </button>
         </div>
 
-        <div class="filterBlock">
+        <!-- <div class="filterBlock">
             <div class="searchWrapper">
                 <input v-model="searchQuery" placeholder="Search by title..." class="fieldItem" />
             </div>
@@ -20,109 +20,314 @@
                     {{ s }}
                 </button>
             </div>
-        </div>
+        </div> -->
 
         <div class="gridBlock">
-            <div v-for="project in filteredProjects" :key="project.id" class="cardBox">
+            <div v-for="(fra, index) in fundRaisingActivities" :key="index" class="cardBox"
+                :class="{ 'is-locked': fra.status === 'SUSPENDED' }">
                 <div class="tagRow">
-                    <span class="tagItem">{{ project.category }}</span>
-                    <span class="statusBadge" :class="project.status.toLowerCase()">{{ project.status }}</span>
+                    <span><el-tag>{{ fra.categoryName }}</el-tag></span>
+                    <div :class="['status-marker', fra.status === 'ACTIVE' ? 'st-active' : 'st-locked']"></div>
                 </div>
-                <h3 class="titleItem">{{ project.title }}</h3>
+                <h3 class="titleItem">{{ fra.title }}</h3>
 
                 <div class="progressContainer">
                     <div class="infoBox">
-                        <strong>${{ project.current }} <span>/ ${{ project.goal }}</span></strong>
-                        <span class="pctText">{{ ((project.current / project.goal) * 100).toFixed(0) }}%</span>
+                        <strong>${{ fra.currentAmount }} <span>/ ${{ fra.targetAmount }}</span></strong>
+                        <span class="pctText">{{ ((fra.currentAmount / fra.targetAmount) * 100).toFixed(0) }}%</span>
                     </div>
                     <div class="trackBox">
                         <div class="barItem"
-                            :style="{ width: Math.min((project.current / project.goal) * 100, 100) + '%' }"></div>
+                            :style="{ width: Math.min((fra.currentAmount / fra.targetAmount) * 100, 100) + '%' }"></div>
+                    </div>
+                    <div class="statBox">
+                        <div class="statItem views">
+                            <span class="material-symbols-outlined">
+                                visibility
+                            </span>
+
+                            <span>{{ fra.viewCount }}</span>
+                        </div>
+
+                        <div class="statItem shortlist">
+                            <span class="material-symbols-outlined">
+                                star
+                            </span>
+                            <span>{{ fra.shortlistCount }}</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="controlBox">
-                    <template v-if="project.status !== 'Completed'">
-                        <button @click="editGoal(project)" class="btnItem ghost">Update Goal</button>
-                        <button @click="toggleStatus(project)" class="btnItem outline">Pause</button>
+                    <template v-if="fra.status !== 'COMPLETED'">
+                        <el-button :icon="Edit" type="primary" @click="openUpdateDrawer(fra)" round plain>Update</el-button>
+                        <el-button
+                            @click="fra.status === 'ACTIVE' ? suspendFundRaisingActivity(fra) : activateFundRaisingActivity(fra)"
+                            :icon="fra.status === 'ACTIVE' ? 'Lock' : 'Unlock'"
+                            :type="fra.status === 'ACTIVE' ? 'danger' : 'success'" round plain>{{ fra.status === 'ACTIVE' ? 'Suspend' : 'Activate' }}</el-button>
                     </template>
-                    <button @click="deleteProject(project.id)" class="btnItem danger">Delete</button>
                 </div>
             </div>
         </div>
 
-        <div v-if="showModal" class="modalOverlay">
-            <div class="modalContent">
-                <div class="modalHeader">
-                    <h3>Launch Activity</h3>
-                    <p>Provide the essential details to start collecting donations.</p>
-                </div>
+        <el-drawer v-model="showDrawer" title="Create Fund Raising Activity" direction="ltr" size="500px"
+            :before-close="handleClose" class="fra-drawer">
+            <el-form :model="fraForm" label-position="top" size="large" :rules="rules" ref="fraFormRef">
+                <el-form-item label="Title" prop="title">
+                    <el-input v-model="fraForm.title" placeholder="Enter activity title" maxlength="100" show-word-limit
+                        clearable />
+                </el-form-item>
 
-                <div class="formBody">
-                    <div class="inputGroup">
-                        <label>Campaign Title</label>
-                        <input v-model="newProject.title" placeholder="e.g. Community Garden Support"
-                            class="styledInput" />
-                    </div>
+                <el-form-item label="Description" prop="description">
+                    <el-input v-model="fraForm.description" type="textarea" :rows="5"
+                        placeholder="Enter activity description" resize="none" clearable />
+                </el-form-item>
 
-                    <div class="inputRow">
-                        <div class="inputGroup">
-                            <label>Category</label>
-                            <select v-model="newProject.category" class="styledInput">
-                                <option v-for="c in categories" :key="c">{{ c }}</option>
-                            </select>
-                        </div>
-                        <div class="inputGroup">
-                            <label>Goal Amount ($)</label>
-                            <input v-model.number="newProject.goal" type="number" class="styledInput" />
-                        </div>
-                    </div>
-                </div>
+                <el-form-item label="Target Amount" prop="targetAmount">
+                    <el-input-number v-model="fraForm.targetAmount" :min="1" :max="1000000000" :precision="2"
+                        controls-position="right" style="width: 100%;" />
+                </el-form-item>
 
-                <div class="modalFooter">
-                    <button @click="showModal = false" class="footerBtn secondary">Discard</button>
-                    <button @click="confirmAdd" class="footerBtn primary">Create Campaign</button>
+                <el-form-item label="Category" prop="categoryId">
+                    <el-select v-model="fraForm.categoryId" placeholder="Select category" style="width: 100%;">
+                        <el-option v-for="(category, index) in availableCategories" :key="index" :label="category.name"
+                            :value="category.id" />
+                    </el-select>
+                </el-form-item>
+
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <el-button @click="close">Cancel</el-button>
+                    <el-button type="primary" @click="handleSubmitFRA">{{ isEditMode ? 'Update' : 'Create' }}</el-button>
                 </div>
-            </div>
-        </div>
+            </el-form>
+        </el-drawer>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { Edit, Lock, Unlock } from '@element-plus/icons-vue'
+import { searchFRACategoriesService } from '@/api/fraCategory';
+import { activateFundRaisingActivityService, createFundRaisingActivityService, getAllFundRaisingActivitiesService, suspendFundRaisingActivityService, updateFundRaisingActivityService } from '@/api/fundRaisingActivity';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { onMounted, ref } from 'vue'
 
-// 数据逻辑
-const projectList = ref(JSON.parse(localStorage.getItem('fraProjects') || '[]'))
-const categories = ref(JSON.parse(localStorage.getItem('fraCategories') || '["Medical", "Education", "Nature", "Community"]'))
-const searchQuery = ref('')
-const currentFilter = ref('All')
-const showModal = ref(false)
-const newProject = ref({ title: '', category: 'Medical', goal: 1000, current: 0, status: 'Active' })
-
-watch(projectList, (val) => localStorage.setItem('fraProjects', JSON.stringify(val)), { deep: true })
-
-const filteredProjects = computed(() => {
-    return projectList.value.filter(p => {
-        const matchSearch = p.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-        const matchStatus = currentFilter.value === 'All' ? true : p.status === currentFilter.value
-        return matchSearch && matchStatus
-    })
+const showDrawer = ref(false)
+const isEditMode = ref(false);
+const fraFormRef = ref()
+const filter = ref({
+    pageNum: 1,
+    pageSize: 20
 })
+const fraForm = ref({
+    id: null,
+    title: "",
+    description: "",
+    targetAmount: null,
+    categoryId: null
+})
+const totalFRA = ref(0)
+const fundRaisingActivities = ref([]);
+const availableCategories = ref([])
 
-const confirmAdd = () => {
-    if (newProject.value.title) {
-        projectList.value.push({ ...newProject.value, id: Date.now() })
-        showModal.value = false
-        newProject.value = { title: '', category: 'Medical', goal: 1000, current: 0, status: 'Active' }
-    }
+const getAllFundRaisingActivities = async () => {
+    const fundRaisingActivitiesData = await getAllFundRaisingActivitiesService(filter.value.pageNum, filter.value.pageSize);
+    fundRaisingActivities.value = fundRaisingActivitiesData.items
+    totalFRA.value = fundRaisingActivitiesData.total
 }
 
-const toggleStatus = (p) => p.status = (p.status === 'Active' ? 'Suspended' : 'Active')
-const deleteProject = (id) => { if (confirm("Permanently delete this campaign?")) projectList.value = projectList.value.filter(p => p.id !== id) }
-const editGoal = (p) => { const g = prompt("Set new goal amount:", p.goal); if (g) p.goal = Number(g) }
+const getAllActiveFRACategories = async () => {
+    const fraCategoriesData = await searchFRACategoriesService("", "", "ACTIVE", "DESC")
+    availableCategories.value = fraCategoriesData
+}
+
+onMounted(() => {
+    getAllFundRaisingActivities()
+    getAllActiveFRACategories()
+})
+
+const close = () => {
+    showDrawer.value = false
+    fraForm.value.id = null
+    fraForm.value.title = ''
+    fraForm.value.description = ''
+    fraForm.value.targetAmount = null
+    fraForm.value.categoryId = null
+}
+
+const handleClose = (done) => {
+    ElMessageBox.confirm('Are you sure you want to close this?')
+        .then(() => {
+            done()
+            fraForm.value.id = null
+            fraForm.value.title = ''
+            fraForm.value.description = ''
+            fraForm.value.targetAmount = null
+            fraForm.value.categoryId = null
+        })
+        .catch(() => {
+            // catch error
+        })
+}
+
+const rules = {
+    title: [
+        {
+            required: true,
+            message: "Title cannot be empty",
+            trigger: ["blur", "submit"]
+        }
+    ],
+
+    description: [
+        {
+            required: true,
+            message: "Description cannot be empty",
+            trigger: ["blur", "submit"]
+        }
+    ],
+
+    targetAmount: [
+        {
+            required: true,
+            message: "Target amount cannot be empty",
+            trigger: ["blur", "submit"]
+        },
+        {
+            type: "number",
+            message: "Target amount must be a number",
+            trigger: ["blur", "submit"]
+        },
+        {
+            validator: (rule, value, callback) => {
+                if (value < 0) {
+                    callback(new Error("Target amount cannot be less than 0.00"))
+                } else {
+                    callback()
+                }
+            },
+            trigger: ["blur", "submit"]
+        }
+    ],
+
+    categoryId: [
+        {
+            required: true,
+            message: "Please select a category",
+            trigger: ["blur", "submit"]
+        }
+    ]
+}
+
+const openCreateDrawer = () => {
+    fraForm.value.id = null
+    fraForm.value.title = ''
+    fraForm.value.description = ''
+    fraForm.value.categoryId = null
+    fraForm.value.targetAmount = null
+    isEditMode.value = false;
+    showDrawer.value = true;
+}
+
+const openUpdateDrawer = (fra) => {
+    fraForm.value.id = fra.id
+    fraForm.value.title = fra.title
+    fraForm.value.description = fra.description
+    fraForm.value.targetAmount = fra.targetAmount
+    fraForm.value.categoryId = availableCategories.value.find(
+        c => c.name === fra.categoryName
+    )?.id
+    isEditMode.value = true
+    showDrawer.value = true
+}
+
+const handleSubmitFRA = async () => {
+    try {
+        await fraFormRef.value.validate()
+        if (isEditMode.value) {
+            const isUpdate = await updateFundRaisingActivityService(fraForm.value);
+            if (isUpdate) {
+                ElMessage.success("Updated successfully")
+                fraForm.value.id = null
+                fraForm.value.title = ''
+                fraForm.value.description = '',
+                fraForm.value.categoryId = null
+                fraForm.value.targetAmount = null
+                showDrawer.value = false
+                getAllFundRaisingActivities()
+            } else {
+                ElMessage.error("Operation failure")
+            }
+        } else {
+            const isCreated = await createFundRaisingActivityService(fraForm.value)
+            if (isCreated) {
+                ElMessage.success("Created successfully")
+                fraForm.value.id = null
+                fraForm.value.title = ''
+                fraForm.value.description = '',
+                fraForm.value.categoryId = null
+                fraForm.value.targetAmount = null
+                showDrawer.value = false
+                getAllFundRaisingActivities()
+            } else {
+                ElMessage.error("Operation failure")
+            }
+        }
+    } catch (error) {
+        ElMessage.error("Operation failure")
+    }
+    return
+}
+
+const suspendFundRaisingActivity = async (fra) => {
+    if (fra.status === 'SUSPENDED') {
+        return
+    }
+    const isSuspended = await suspendFundRaisingActivityService(fra.id);
+    if (isSuspended) {
+        ElMessage.success("Suspended successfully")
+    } else {
+        ElMessage.error("Operation failure")
+    }
+    getAllFundRaisingActivities()
+}
+
+const activateFundRaisingActivity = async (fra) => {
+    if (fra.status === 'ACTIVE') {
+        return
+    }
+    const isActivated = await activateFundRaisingActivityService(fra.id);
+    if (isActivated) {
+        ElMessage.success("Activated successfully")
+    } else {
+        ElMessage.error("Operation failure")
+    }
+    getAllFundRaisingActivities()
+}
 </script>
 
 <style scoped>
+.status-marker {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.st-active {
+    background: #10b981;
+    box-shadow: 0 0 10px #10b981;
+}
+
+.st-locked {
+    background: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+}
+
+.is-locked {
+    opacity: 0.6;
+    background: #fafafa;
+}
+
 /* 页面基础布局 */
 .mainContainer {
     background: #f8fafc;
@@ -319,7 +524,7 @@ const editGoal = (p) => { const g = prompt("Set new goal amount:", p.goal); if (
 
 .controlBox {
     display: flex;
-    gap: 10px;
+    justify-content: space-between;
 }
 
 .btnItem {
@@ -461,6 +666,50 @@ const editGoal = (p) => { const g = prompt("Set new goal amount:", p.goal); if (
 .footerBtn.primary:hover {
     background: #2563eb;
     transform: translateY(-2px);
+}
+
+.statBox {
+    display: flex;
+    gap: 12px;
+    margin-top: 14px;
+    justify-content: flex-end;
+}
+
+.statItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+}
+
+.statItem .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.statItem.views {
+    background: rgba(245, 247, 250, 0.95);
+    color: #4b5563;
+    border: 1px solid rgba(209, 213, 219, 0.7);
+}
+
+.statItem.shortlist {
+    background: rgba(255, 248, 235, 0.95);
+    color: #d97706;
+    border: 1px solid rgba(251, 191, 36, 0.45);
+}
+
+.statItem .material-symbols-outlined {
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 300,
+        'GRAD' 200,
+        'opsz' 48;
+    font-size: 20px;
+    transition: all 0.3s ease;
 }
 
 @keyframes fadeIn {
