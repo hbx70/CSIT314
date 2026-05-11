@@ -1,404 +1,193 @@
 <template>
-    <div class="doneeContainer">
-        <div class="heroSection">
-            <div class="contentWrapper">
-                <h1 class="mainTitle">Make an Impact</h1>
-                <div class="navTabs">
-                    <button v-for="mode in modes" :key="mode.id" @click="viewMode = mode.id"
-                        :class="{ active: viewMode === mode.id }">
-                        {{ mode.label }}
-                        <span v-if="mode.id === 'fav'" class="badge">{{ favList.length }}</span>
-                    </button>
-                </div>
-                <div class="searchBox">
-                    <input v-model="searchQuery" type="text" placeholder="Search for causes you care about..."
-                        class="glassInput" />
-                </div>
+  <div class="doneePage">
+    <header class="pageHeader">
+      <h1 class="mainTitle">Donation Module</h1>
+      <div class="searchContainer">
+        <div class="searchBar">
+          <span class="material-symbols-outlined">search</span>
+          <input v-model="searchQuery" type="text" placeholder="Search for causes..." />
+        </div>
+      </div>
+    </header>
+
+    <main class="mainContent">
+      <div class="gridWrapper">
+        <div v-for="p in filteredList" :key="p.id" class="projectCard" @click="openDetails(p)">
+          <div class="cardTop">
+            <span class="categoryBadge">{{ p.category }}</span>
+            <div class="statusDot" :class="{ active: p.status === 'Active' }"></div>
+          </div>
+          <h2 class="projectTitle">{{ p.title }}</h2>
+          <div class="fundingRow">
+            <span><b>${{ p.current }}</b> / <small>${{ p.goal }}</small></span>
+            <span class="percentText">{{ Math.round((p.current/p.goal)*100) }}%</span>
+          </div>
+          <div class="progressBar">
+            <div class="fill" :style="{width: (p.current/p.goal*100)+'%'}"></div>
+          </div>
+          
+          <div class="statsRow">
+            <div class="statPill">
+              <span class="material-symbols-outlined">visibility</span> {{ p.views || 0 }}
             </div>
+            <div class="statPill">
+              <span class="material-symbols-outlined">star</span> {{ p.favCount || 0 }}
+            </div>
+          </div>
+          </div>
+      </div>
+    </main>
+
+    <el-drawer v-model="drawer" direction="rtl" size="400px">
+      <template #header>
+        <div class="drawerHeader">
+          <span class="categoryBadge">{{ selected?.category }}</span>
+          <h3>{{ selected?.title }}</h3>
+        </div>
+      </template>
+      <div class="drawerBody" v-if="selected">
+        <div class="descriptionBox">
+          <p>Your contribution will directly support the {{ selected.category }} program. Join us today to make a difference!</p>
+        </div>
+        
+        <div class="drawerStatsGrid">
+          <div class="statItem"><label>VIEWS</label><span>{{ selected.views }}</span></div>
+          <div class="statItem"><label>FAVORITES</label><span>{{ selected.favCount }}</span></div>
         </div>
 
-        <div class="mainContent">
-            <transition-group name="list" tag="div" v-if="viewMode !== 'history'" class="gridWrapper">
-                <div v-for="p in filteredList" :key="p.id" class="projectCard">
-                    <div class="cardHeader">
-                        <span class="categoryTag">{{ p.category }}</span>
-                        <button @click="toggleFav(p.id)" class="favIconButton" :class="{ isFav: isFav(p.id) }">
-                            {{ isFav(p.id) ? '❤️' : '🤍' }}
-                        </button>
-                    </div>
-
-                    <h3 class="projectTitle">{{ p.title }}</h3>
-
-                    <div class="progressSection">
-                        <div class="progressBar">
-                            <div class="progressFill" :style="{ width: (p.current / p.goal * 100) + '%' }"></div>
-                        </div>
-                        <div class="progressLabel">
-                            <span class="currentVal">${{ p.current.toLocaleString() }}</span>
-                            <span class="goalVal">of ${{ p.goal.toLocaleString() }}</span>
-                        </div>
-                    </div>
-
-                    <button @click="donate(p)" class="donateButton" :disabled="p.status === 'Completed'">
-                        {{ p.status === 'Completed' ? 'Goal Achieved' : 'Support with $100' }}
-                    </button>
-                </div>
-            </transition-group>
-
-            <div v-else class="historyWrapper">
-                <div v-for="h in history" :key="h.id" class="historyItem">
-                    <div class="historyInfo">
-                        <span class="historyDate">{{ h.date }}</span>
-                        <p class="historyTitle">{{ h.title }}</p>
-                    </div>
-                    <span class="historyAmount">+$100.00</span>
-                </div>
-                <div v-if="history.length === 0" class="emptyState">No donation history yet.</div>
-            </div>
+        <div class="drawerActions">
+          <button class="donateBtn" @click="donate(selected)">
+            <span class="material-symbols-outlined">payments</span> Donate $100
+          </button>
+          
+          <button 
+            :class="['saveBtn', { isSaved: isSaved(selected.id) }]" 
+            @click="toggleSave(selected.id)"
+          >
+            <span class="material-symbols-outlined">
+              {{ isSaved(selected.id) ? 'bookmark_added' : 'bookmark' }}
+            </span>
+            {{ isSaved(selected.id) ? 'Saved to Collection' : 'Save for Later' }}
+          </button>
         </div>
-
-        <transition name="toast">
-            <div v-if="showToast" class="toastNotification">
-                <div class="toastIcon">✨</div>
-                <div class="toastText">Thank you! Your donation was successful.</div>
-            </div>
-        </transition>
-    </div>
+      </div>
+    </el-drawer>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 
-const projectList = ref(JSON.parse(localStorage.getItem('fraProjects') || '[]'))
-const favList = ref(JSON.parse(localStorage.getItem('fraFavs') || '[]'))
-const history = ref(JSON.parse(localStorage.getItem('fraDonations') || '[]'))
 const searchQuery = ref('')
-const viewMode = ref('all')
-const showToast = ref(false)
+const drawer = ref(false)
+const selected = ref(null)
+const projects = ref(JSON.parse(localStorage.getItem('fraProjects') || '[]'))
+const favs = ref(JSON.parse(localStorage.getItem('fraFavs') || '[]'))
 
-const modes = [
-    { id: 'all', label: 'Explore' },
-    { id: 'fav', label: 'Saved' },
-    { id: 'history', label: 'History' }
-]
+const filteredList = computed(() => projects.value.filter(p => 
+  p.status === 'Active' && p.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+))
 
-const isFav = (id) => favList.value.includes(id)
+const isSaved = (id) => favs.value.includes(id)
 
-const toggleFav = (id) => {
-    if (isFav(id)) favList.value = favList.value.filter(f => f !== id)
-    else favList.value.push(id)
-    localStorage.setItem('fraFavs', JSON.stringify(favList.value))
+const openDetails = (p) => { 
+  selected.value = p; 
+  p.views = (p.views || 0) + 1; 
+  drawer.value = true; 
+  saveData();
 }
 
-const filteredList = computed(() => {
-    let list = viewMode.value === 'all' ? projectList.value : projectList.value.filter(p => favList.value.includes(p.id))
-    return list.filter(p => p.status === 'Active' && p.title.toLowerCase().includes(searchQuery.value.toLowerCase()))
-})
+const toggleSave = (id) => {
+  const p = projects.value.find(x => x.id === id);
+  if (isSaved(id)) { 
+    favs.value = favs.value.filter(f => f !== id); 
+    if(p) p.favCount--; 
+  } else { 
+    favs.value.push(id); 
+    if(p) p.favCount++; 
+  }
+  saveData();
+}
 
 const donate = (p) => {
-    p.current = Math.min(p.current + 100, p.goal)
-    if (p.current === p.goal) p.status = 'Completed'
+  p.current = Math.min(p.current + 100, p.goal);
+  const history = JSON.parse(localStorage.getItem('fraDonations') || '[]');
+  history.unshift({ 
+    id: Date.now(), 
+    title: p.title, 
+    amount: 100, 
+    date: new Date().toLocaleDateString() 
+  });
+  localStorage.setItem('fraDonations', JSON.stringify(history));
+  saveData();
+}
 
-    history.value.unshift({
-        id: Date.now(),
-        title: p.title,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    })
-
-    localStorage.setItem('fraDonations', JSON.stringify(history.value))
-    localStorage.setItem('fraProjects', JSON.stringify(projectList.value))
-
-    // 触发自定义通知，而不是 alert
-    showToast.value = true
-    setTimeout(() => { showToast.value = false }, 3000)
+const saveData = () => {
+  localStorage.setItem('fraProjects', JSON.stringify(projects.value));
+  localStorage.setItem('fraFavs', JSON.stringify(favs.value));
 }
 </script>
 
 <style scoped>
-/* 基础容器 */
-.doneeContainer {
-    min-height: 100vh;
-    background: #f8fafc;
-    font-family: 'Inter', -apple-system, sans-serif;
-    padding-bottom: 100px;
-}
-
-/* 顶部 Hero 区域 */
-.heroSection {
-    background: #ffffff;
-    padding: 60px 20px;
-    border-bottom: 1px solid #e2e8f0;
-    text-align: center;
-}
-
-.mainTitle {
-    font-size: 2.5rem;
-    font-weight: 900;
-    color: #0f172a;
-    letter-spacing: -1px;
-    margin-bottom: 30px;
-}
-
-.navTabs {
-    display: inline-flex;
-    background: #f1f5f9;
-    padding: 6px;
-    border-radius: 16px;
-    margin-bottom: 30px;
-}
-
-.navTabs button {
-    padding: 10px 24px;
-    border: none;
-    background: transparent;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 14px;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.navTabs button.active {
-    background: #ffffff;
-    color: #2563eb;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.badge {
-    background: #2563eb;
-    color: white;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 8px;
-}
+/* 页面基础样式 */
+.doneePage { background: #fcfcfd; min-height: 100vh; }
+.pageHeader { background: white; padding: 40px 20px; border-bottom: 1px solid #f1f5f9; text-align: center; }
+.mainTitle { font-size: 32px; font-weight: 900; color: #0f172a; margin-bottom: 25px; }
 
 /* 搜索框 */
-.glassInput {
-    width: 100%;
-    max-width: 500px;
-    padding: 16px 24px;
-    border-radius: 20px;
-    border: 2px solid #f1f5f9;
-    background: #ffffff;
-    font-size: 16px;
-    transition: all 0.3s;
-    outline: none;
+.searchBar { 
+  display: flex; align-items: center; background: white; border: 1px solid #e2e8f0;
+  padding: 12px 20px; border-radius: 16px; max-width: 500px; margin: 0 auto;
 }
+.searchBar input { border: none; outline: none; flex: 1; margin-left: 10px; font-size: 14px; }
 
-.glassInput:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-}
+/* 网格布局 */
+.gridWrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 40px; }
 
-/* 卡片布局 */
-.mainContent {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 0 20px;
+/* 卡片样式 - 去除了底部按钮空间 */
+.projectCard { 
+  background: white; border-radius: 32px; padding: 32px; border: 1px solid #f1f5f9;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.02); cursor: pointer; transition: 0.3s;
 }
+.projectCard:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.06); }
 
-.gridWrapper {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
-}
+.cardTop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.categoryBadge { background: #eff6ff; color: #3b82f6; font-size: 10px; font-weight: 900; padding: 6px 12px; border-radius: 8px; text-transform: uppercase; }
+.statusDot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+.statusDot.active { background: #10b981; box-shadow: 0 0 8px #10b981; }
 
-.projectCard {
-    background: #ffffff;
-    border-radius: 32px;
-    padding: 30px;
-    transition: all 0.4s;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-    display: flex;
-    flex-direction: column;
-}
+.projectTitle { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
+.fundingRow { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.percentText { color: #3b82f6; font-weight: 800; font-size: 14px; }
+.progressBar { height: 8px; background: #f1f5f9; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+.progressBar .fill { height: 100%; background: #3b82f6; border-radius: 10px; transition: width 0.3s ease; }
 
-.projectCard:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-}
+.statsRow { display: flex; gap: 10px; }
+.statPill { background: #f8fafc; border: 1px solid #f1f5f9; padding: 6px 14px; border-radius: 14px; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: #64748b; }
 
-.cardHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
+/* 抽屉内部样式 */
+.drawerHeader h3 { margin-top: 10px; font-size: 24px; font-weight: 800; color: #0f172a; }
+.descriptionBox { background: #f8fafc; padding: 24px; border-radius: 20px; color: #64748b; line-height: 1.6; margin: 20px 0; }
+.drawerStatsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+.statItem { background: white; border: 1px solid #f1f5f9; padding: 15px; border-radius: 18px; text-align: center; }
+.statItem label { display: block; font-size: 10px; color: #94a3b8; font-weight: 800; margin-bottom: 5px; }
+.statItem span { font-size: 24px; font-weight: 900; color: #1e293b; }
 
-.categoryTag {
-    font-size: 11px;
-    font-weight: 800;
-    color: #059669;
-    background: #ecfdf5;
-    padding: 6px 14px;
-    border-radius: 12px;
-    text-transform: uppercase;
-}
+/* 抽屉操作按钮 */
+.drawerActions { display: flex; flex-direction: column; gap: 12px; }
 
-.favIconButton {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    transition: transform 0.2s;
+.donateBtn { 
+  width: 100%; padding: 18px; background: #3b82f6; color: white; border: none; 
+  border-radius: 18px; font-weight: 800; cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
 }
+.donateBtn:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
 
-.favIconButton:hover {
-    transform: scale(1.2);
+.saveBtn { 
+  width: 100%; padding: 18px; background: #f1f5f9; color: #64748b; border: none; 
+  border-radius: 18px; font-weight: 800; cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
 }
-
-.projectTitle {
-    font-size: 20px;
-    font-weight: 800;
-    color: #1e293b;
-    line-height: 1.4;
-    margin-bottom: 25px;
-}
-
-/* 进度条 */
-.progressSection {
-    margin-top: auto;
-    margin-bottom: 25px;
-}
-
-.progressBar {
-    height: 8px;
-    background: #f1f5f9;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 12px;
-}
-
-.progressFill {
-    height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #2563eb);
-    border-radius: 10px;
-    transition: width 1s ease-out;
-}
-
-.progressLabel {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-}
-
-.currentVal {
-    font-weight: 800;
-    color: #0f172a;
-}
-
-.goalVal {
-    color: #94a3b8;
-}
-
-/* 按钮 */
-.donateButton {
-    width: 100%;
-    padding: 16px;
-    border-radius: 18px;
-    border: none;
-    background: #0f172a;
-    color: white;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.donateButton:hover:not(:disabled) {
-    background: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
-}
-
-.donateButton:disabled {
-    background: #e2e8f0;
-    color: #94a3b8;
-    cursor: not-allowed;
-}
-
-/* 历史记录 */
-.historyWrapper {
-    background: white;
-    border-radius: 32px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-}
-
-.historyItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.historyItem:last-child {
-    border: none;
-}
-
-.historyDate {
-    font-size: 12px;
-    color: #94a3b8;
-    font-weight: 600;
-}
-
-.historyTitle {
-    font-weight: 700;
-    color: #1e293b;
-    margin: 4px 0 0 0;
-}
-
-.historyAmount {
-    color: #059669;
-    font-weight: 800;
-    font-size: 18px;
-}
-
-/* 通知组件样式 */
-.toastNotification {
-    position: fixed;
-    top: 30px;
-    right: 30px;
-    background: #0f172a;
-    color: white;
-    padding: 16px 28px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-}
-
-.toastText {
-    font-weight: 600;
-    font-size: 14px;
-}
-
-/* 动画效果 */
-.toast-enter-active,
-.toast-leave-active {
-    transition: all 0.4s ease;
-}
-
-.toast-enter-from,
-.toast-leave-to {
-    transform: translateX(100px);
-    opacity: 0;
-}
-
-.list-enter-active,
-.list-leave-active {
-    transition: all 0.5s ease;
-}
-
-.list-enter-from,
-.list-leave-to {
-    opacity: 0;
-    transform: scale(0.9);
-}
+.saveBtn:hover { background: #e2e8f0; }
+.saveBtn.isSaved { background: #fff1f2; color: #e11d48; } /* 收藏后的粉红色视觉 */
 </style>
