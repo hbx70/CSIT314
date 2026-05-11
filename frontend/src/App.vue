@@ -18,17 +18,19 @@
                             <span class="nav-label">Profile</span>
                         </div>
                     </template>
-                    <template v-else-if="currentUser.role === 'Donee'">
+                    <template v-else-if="userInfoStore.info.role === 'DONEE'">
                         <div class="nav-item-wrapper" @click="$router.push('/donee/explore')">
-                            <div :class="['nav-btn', { active: $route.path === '/donee/explore' }]">EX</div>
+                            <div :class="['nav-btn', { active: $route.path === '/donee/explore' }]">
+                                <span class="material-symbols-outlined">volunteer_activism</span>
+                            </div>
                             <span class="nav-label">Explore</span>
                         </div>
                         <div class="nav-item-wrapper" @click="$router.push('/donee/saved')">
-                            <div :class="['nav-btn', { active: $route.path === '/donee/saved' }]">SV</div>
+                            <div :class="['nav-btn', { active: $route.path === '/donee/saved' }]"><span class="material-symbols-outlined">star</span></div>
                             <span class="nav-label">Saved</span>
                         </div>
                         <div class="nav-item-wrapper" @click="$router.push('/donee/history')">
-                            <div :class="['nav-btn', { active: $route.path === '/donee/history' }]">HS</div>
+                            <div :class="['nav-btn', { active: $route.path === '/donee/history' }]"><span class="material-symbols-outlined">history</span></div>
                             <span class="nav-label">History</span>
                         </div>
                     </template>

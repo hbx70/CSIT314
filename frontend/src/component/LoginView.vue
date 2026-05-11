@@ -52,7 +52,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const routes = {
     'ADMIN': '/admin/account',
-    'DONEE': '/donee',
+    'DONEE': '/donee/explore',
     'FUND_RAISER': '/fundraiser',
     'PLATFORM_MANAGER': '/manager/category'
 }
