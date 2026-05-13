@@ -42,7 +42,7 @@
                     <h2 class="projectTitle">{{ fra.title }}</h2>
                     <div class="fundingRow">
                         <span><b>${{ formatNumber(fra.currentAmount) }}</b> / <small>${{ formatNumber(fra.targetAmount)
-                        }}</small></span>
+                                }}</small></span>
                         <span class="percentText">{{ Math.round((fra.currentAmount / fra.targetAmount) * 100) }}%</span>
                     </div>
                     <div class="progressBar">
@@ -95,7 +95,7 @@
                     <div class="progress-top">
                         <span>Fund Raising Progress</span>
                         <span>{{ Math.min(Math.round((selected.currentAmount / selected.targetAmount) * 100), 100)
-                            }}%</span>
+                        }}%</span>
                     </div>
                     <el-progress
                         :percentage="Math.min(Math.round((selected.currentAmount / selected.targetAmount) * 100), 100)"
@@ -184,51 +184,314 @@ const formatNumber = (num) => {
 
 <style scoped>
 /* 保持原有页面样式不变 */
-.doneePage { background: #fcfcfd; min-height: 100vh; }
-.pageHeader { background: white; padding: 40px 20px; border-bottom: 1px solid #f1f5f9; text-align: center; }
-.mainTitle { font-size: 32px; font-weight: 900; color: #0f172a; margin-bottom: 25px; }
-.gridWrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 40px; }
-.projectCard { background: white; border-radius: 32px; padding: 32px; border: 1px solid #f1f5f9; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02); cursor: pointer; transition: 0.3s; }
-.projectCard:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06); }
-.cardTop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.categoryBadge { background: #eff6ff; color: #3b82f6; font-size: 10px; font-weight: 900; padding: 6px 12px; border-radius: 8px; text-transform: uppercase; }
-.statusDot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
-.statusDot.active { background: #10b981; box-shadow: 0 0 8px #10b981; }
-.projectTitle { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
-.fundingRow { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-.percentText { color: #3b82f6; font-weight: 800; font-size: 14px; }
-.progressBar { height: 8px; background: #f1f5f9; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
-.progressBar .fill { height: 100%; background: #3b82f6; border-radius: 10px; transition: width 0.3s ease; }
-.statBox { display: flex; gap: 12px; margin-top: 14px; justify-content: flex-end; }
-.statItem { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 14px; font-weight: 600; }
-.statItem.views { background: rgba(245, 247, 250, 0.95); color: #4b5563; border: 1px solid rgba(209, 213, 219, 0.7); }
-.statItem.shortlist { background: rgba(255, 248, 235, 0.95); color: #d97706; border: 1px solid rgba(251, 191, 36, 0.45); }
-.filterBlock { display: flex; flex-direction: column; gap: 10px; margin-bottom: 35px; align-items: center; padding: 0 60px; }
-.filterBlock .title { font-size: 20px; font-weight: 500; }
-.filterContainer { display: flex; gap: 10px; }
-.radioGroupContainer { display: flex; flex-direction: column; gap: 5px; }
+.doneePage {
+    background: #fcfcfd;
+    min-height: 100vh;
+}
+
+.pageHeader {
+    background: white;
+    padding: 40px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: center;
+}
+
+.mainTitle {
+    font-size: 32px;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 25px;
+}
+
+.gridWrapper {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+    padding: 40px;
+}
+
+.projectCard {
+    background: white;
+    border-radius: 32px;
+    padding: 32px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.projectCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+}
+
+.cardTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.categoryBadge {
+    background: #eff6ff;
+    color: #3b82f6;
+    font-size: 10px;
+    font-weight: 900;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-transform: uppercase;
+}
+
+.statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #cbd5e1;
+}
+
+.statusDot.active {
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+}
+
+.projectTitle {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 20px;
+}
+
+.fundingRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+}
+
+.percentText {
+    color: #3b82f6;
+    font-weight: 800;
+    font-size: 14px;
+}
+
+.progressBar {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progressBar .fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.statBox {
+    display: flex;
+    gap: 12px;
+    margin-top: 14px;
+    justify-content: flex-end;
+}
+
+.statItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.statItem.views {
+    background: rgba(245, 247, 250, 0.95);
+    color: #4b5563;
+    border: 1px solid rgba(209, 213, 219, 0.7);
+}
+
+.statItem.shortlist {
+    background: rgba(255, 248, 235, 0.95);
+    color: #d97706;
+    border: 1px solid rgba(251, 191, 36, 0.45);
+}
+
+.filterBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 35px;
+    align-items: center;
+    padding: 0 60px;
+}
+
+.filterBlock .title {
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.filterContainer {
+    display: flex;
+    gap: 10px;
+}
+
+.radioGroupContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
 
 /* 重点修改：Fundraiser 风格的抽屉内部样式 */
-.fra-detail-drawer :deep(.el-drawer) { border-radius: 28px 0 0 28px; overflow: hidden; }
-.drawer-container { padding: 40px; background: #f8fafc; min-height: 100%; text-align: left; }
-.drawer-header h1 { margin: 15px 0; font-size: 32px; font-weight: 800; color: #111827; }
-.drawer-description { font-size: 16px; line-height: 1.8; color: #6b7280; }
-.amount-section { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.amount-card { background: white; border-radius: 22px; padding: 28px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04); }
-.amount-card span { color: #6b7280; font-size: 14px; font-weight: 600; }
-.amount-card h2 { margin-top: 14px; font-size: 30px; color: #111827; font-weight: 800; }
-.progress-section { margin-top: 30px; background: white; padding: 28px; border-radius: 22px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04); }
-.progress-top { display: flex; justify-content: space-between; margin-bottom: 18px; font-weight: 700; color: #111827; }
-.stats-grid { margin-top: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.stat-box { background: white; padding: 18px; border-radius: 20px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04); display: flex; align-items: center; gap: 12px; }
-.stat-box p { margin: 0; font-weight: 700; color: #111827; }
-.stat-box .material-symbols-outlined { color: #94a3b8; }
+.fra-detail-drawer :deep(.el-drawer) {
+    border-radius: 28px 0 0 28px;
+    overflow: hidden;
+}
+
+.drawer-container {
+    padding: 40px;
+    background: #f8fafc;
+    min-height: 100%;
+    text-align: left;
+}
+
+.drawer-header h1 {
+    margin: 15px 0;
+    font-size: 32px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.drawer-description {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #6b7280;
+}
+
+.amount-section {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.amount-card {
+    background: white;
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.amount-card span {
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.amount-card h2 {
+    margin-top: 14px;
+    font-size: 30px;
+    color: #111827;
+    font-weight: 800;
+}
+
+.progress-section {
+    margin-top: 30px;
+    background: white;
+    padding: 28px;
+    border-radius: 22px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.progress-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.stats-grid {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.stat-box {
+    background: white;
+    padding: 18px;
+    border-radius: 20px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-box p {
+    margin: 0;
+    font-weight: 700;
+    color: #111827;
+}
+
+.stat-box .material-symbols-outlined {
+    color: #94a3b8;
+}
 
 /* 底部操作按钮 */
-.drawerActions { display: flex; flex-direction: column; gap: 12px; }
-.donateBtn { width: 100%; padding: 20px; background: #3b82f6; color: white; border: none; border-radius: 20px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; }
-.donateBtn:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
-.saveBtn { width: 100%; padding: 20px; background: #f1f5f9; color: #64748b; border: none; border-radius: 20px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; }
-.saveBtn:hover { background: #e2e8f0; }
-.saveBtn.isSaved { background: #fff1f2; color: #e11d48; }
+.drawerActions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.donateBtn {
+    width: 100%;
+    padding: 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 16px;
+}
+
+.donateBtn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+}
+
+.saveBtn {
+    width: 100%;
+    padding: 20px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    border-radius: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 16px;
+}
+
+.saveBtn:hover {
+    background: #e2e8f0;
+}
+
+.saveBtn.isSaved {
+    background: #fff1f2;
+    color: #e11d48;
+}
 </style>
