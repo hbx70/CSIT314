@@ -421,4 +421,12 @@ public class FundRaisingActivity {
                 fraId
         );
     }
+
+    public void completeFundRaisingActivity(@NotNull Integer fraId) {
+        String sql = "UPDATE fund_raising_activity  SET status = 'COMPLETED' WHERE id = ?";
+        DBContext.getJdbcTemplate().update(
+                sql,
+                fraId
+        );
+    }
 }

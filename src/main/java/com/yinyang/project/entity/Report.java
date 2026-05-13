@@ -129,6 +129,7 @@ public class Report {
                 "SELECT DATE_FORMAT(created_at, ?) AS label, " +
                 "SUM(amount) AS total_amount " +
                 "FROM donation " +
+                "WHERE status = 'SUCCESS' " +
                 "GROUP BY label " +
                 "ORDER BY label";
 
@@ -157,6 +158,7 @@ public class Report {
                 "SELECT DATE_FORMAT(created_at, ?) AS label, " +
                 "COUNT(*) AS donation_count " +
                 "FROM donation " +
+                "WHERE status = 'SUCCESS' " +
                 "GROUP BY label " +
                 "ORDER BY label";
 
