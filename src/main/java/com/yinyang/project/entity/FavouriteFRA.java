@@ -2,7 +2,6 @@ package com.yinyang.project.entity;
 
 import com.yinyang.project.DBContext;
 import com.yinyang.project.dto.FundRaisingActivityResponse;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -103,6 +102,7 @@ public class FavouriteFRA {
                     fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
                     fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
                     fundRaisingActivityResponse.setCreatorAccountStatus(UserAccount.Status.valueOf(rs.getString("creator_account_status")));
+                    fundRaisingActivityResponse.setCategoryId(rs.getInt("category_id"));
                     fundRaisingActivityResponse.setCategoryName(rs.getString("category_name"));
                     fundRaisingActivityResponse.setCategoryStatus(FRACategory.Status.valueOf(rs.getString("category_status")));
                     return fundRaisingActivityResponse;

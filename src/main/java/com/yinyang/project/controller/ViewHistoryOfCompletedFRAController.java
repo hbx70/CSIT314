@@ -24,14 +24,8 @@ public class ViewHistoryOfCompletedFRAController {
         Integer currentUserId = (Integer) claims.get("id");
         if (currentUserRole == UserProfile.Name.FUND_RAISER) {
             fundRaisingActivity = new FundRaisingActivity();
-            // start the pagination
-            PageHelper.startPage(pageNum, pageSize);
-            // get all fund raising activities
-            List<FundRaisingActivityResponse> fundRaisingActivityResponseList = fundRaisingActivity.searchFundRaisingActivities(null, FundRaisingActivity.Status.COMPLETED, null, "DESC", currentUserId);
-            // set the pagination result
-            Page<FundRaisingActivityResponse> page = (Page<FundRaisingActivityResponse>) fundRaisingActivityResponseList;
-            pb.setTotal(page.getTotal());
-            pb.setItems(page.getResult());
+            Integer offset = (pageNum - 1) * pageSize;
+            pb = fundRaisingActivity.searchFundRaisingActivities(null, FundRaisingActivity.Status.COMPLETED, null, "DESC", currentUserId, pageSize, offset);
         }
         return pb;
     }

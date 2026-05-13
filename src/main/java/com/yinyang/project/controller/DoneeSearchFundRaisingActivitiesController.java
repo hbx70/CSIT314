@@ -25,14 +25,8 @@ public class DoneeSearchFundRaisingActivitiesController {
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         if (currentUserRole == UserProfile.Name.DONEE) {
             fundRaisingActivity = new FundRaisingActivity();
-            // start the pagination
-            PageHelper.startPage(pageNum, pageSize);
-            // get all fund raising activities
-            List<FundRaisingActivityResponse> fundRaisingActivityResponseList = fundRaisingActivity.doneeSearchFundRaisingActivities(title, categoryId, orderBy);
-            // set the pagination result
-            Page<FundRaisingActivityResponse> page = (Page<FundRaisingActivityResponse>) fundRaisingActivityResponseList;
-            pb.setTotal(page.getTotal());
-            pb.setItems(page.getResult());
+            Integer offset = (pageNum - 1) * pageSize;
+            pb = fundRaisingActivity.doneeSearchFundRaisingActivities(title, categoryId, orderBy, pageSize, offset);
         }
         return pb;
     }

@@ -121,6 +121,7 @@ public class FundRaisingActivity {
                     fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
                     fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
                     fundRaisingActivityResponse.setCreatorAccountStatus(UserAccount.Status.valueOf(rs.getString("creator_account_status")));
+                    fundRaisingActivityResponse.setCategoryId(rs.getInt("category_id"));
                     fundRaisingActivityResponse.setCategoryName(rs.getString("category_name"));
                     fundRaisingActivityResponse.setCategoryStatus(FRACategory.Status.valueOf(rs.getString("category_status")));
                     return fundRaisingActivityResponse;
@@ -150,7 +151,7 @@ public class FundRaisingActivity {
         return row == 1;
     }
 
-    public List<FundRaisingActivityResponse> searchFundRaisingActivities(String title, Status status, Integer categoryId, @NotBlank String order, Integer currentUserId) {
+    public PageBean<FundRaisingActivityResponse> searchFundRaisingActivities(String title, Status status, Integer categoryId, @NotBlank String order, Integer currentUserId, Integer pageSize, Integer offset) {
         StringBuilder sql = new StringBuilder(
                 "SELECT fra.*, " +
                 "ua.username AS creator_name, ua.user_profile_name AS creator_role, ua.status AS creator_account_status, " +
@@ -160,6 +161,8 @@ public class FundRaisingActivity {
                 "LEFT JOIN fra_category frac ON fra.category_id = frac.id " +
                 "WHERE 1 = 1"
         );
+        String countSql = "SELECT COUNT(*) FROM fund_raising_activity WHERE created_by = ?";
+
         List<Object> params = new ArrayList<>();
 
         sql.append(" AND fra.created_by = ?");
@@ -186,7 +189,9 @@ public class FundRaisingActivity {
         }
         sql.append(" ORDER BY fra.created_at ").append(orderDirection);
 
-        return DBContext.getJdbcTemplate().query(
+        sql.append(" LIMIT " + pageSize + " OFFSET " + offset);
+
+        List<FundRaisingActivityResponse> fundRaisingActivityResponseList = DBContext.getJdbcTemplate().query(
                 sql.toString(),
                 params.toArray(),
                 (rs, rowNum) -> {
@@ -203,11 +208,21 @@ public class FundRaisingActivity {
                     fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
                     fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
                     fundRaisingActivityResponse.setCreatorAccountStatus(UserAccount.Status.valueOf(rs.getString("creator_account_status")));
+                    fundRaisingActivityResponse.setCategoryId(rs.getInt("category_id"));
                     fundRaisingActivityResponse.setCategoryName(rs.getString("category_name"));
                     fundRaisingActivityResponse.setCategoryStatus(FRACategory.Status.valueOf(rs.getString("category_status")));
                     return fundRaisingActivityResponse;
                 }
         );
+        Long total = DBContext.getJdbcTemplate().queryForObject(
+                countSql,
+                Long.class,
+                currentUserId
+        );
+        PageBean<FundRaisingActivityResponse> pb = new PageBean<>();
+        pb.setItems(fundRaisingActivityResponseList);
+        pb.setTotal(total);
+        return pb;
     }
 
     public boolean suspendFundRaisingActivity(@NotNull Integer fundRaisingActivityId) {
@@ -236,7 +251,7 @@ public class FundRaisingActivity {
         return false;
     }
 
-    public List<FundRaisingActivityResponse> doneeSearchFundRaisingActivities(String title, Integer categoryId, @NotBlank String orderBy) {
+    public PageBean<FundRaisingActivityResponse> doneeSearchFundRaisingActivities(String title, Integer categoryId, @NotBlank String orderBy, Integer pageSize, Integer offset) {
         StringBuilder sql = new StringBuilder(
                 "SELECT fra.*, " +
                 "ua.username AS creator_name, ua.user_profile_name AS creator_role, ua.status AS creator_account_status, " +
@@ -246,9 +261,21 @@ public class FundRaisingActivity {
                 "LEFT JOIN fra_category frac ON fra.category_id = frac.id " +
                 "WHERE 1 = 1"
         );
+        String countSql = "SELECT COUNT(*) " +
+                "FROM fund_raising_activity fra " +
+                "LEFT JOIN fra_category frac ON fra.category_id = frac.id " +
+                "LEFT JOIN user_account ua ON fra.created_by = ua.id " +
+                "WHERE fra.status = 'ACTIVE' AND frac.status = 'ACTIVE' AND ua.status = 'ACTIVE'";
+
         List<Object> params = new ArrayList<>();
 
         sql.append(" AND fra.status = ?");
+        params.add("ACTIVE");
+
+        sql.append(" AND frac.status = ?");
+        params.add("ACTIVE");
+
+        sql.append(" AND ua.status = ?");
         params.add("ACTIVE");
 
         if (title != null && !title.isEmpty()) {
@@ -265,9 +292,14 @@ public class FundRaisingActivity {
         if ("viewCount".equals(orderBy)) {
             orderCondition = "fra.view_count";
         }
+        if ("shortlistCount".equals(orderBy)) {
+            orderCondition = "fra.shortlist_count";
+        }
         sql.append(" ORDER BY ").append(orderCondition).append(" DESC");
 
-        return DBContext.getJdbcTemplate().query(
+        sql.append(" LIMIT " + pageSize + " OFFSET " + offset);
+
+        List<FundRaisingActivityResponse> fundRaisingActivityResponseList = DBContext.getJdbcTemplate().query(
                 sql.toString(),
                 params.toArray(),
                 (rs, rowNum) -> {
@@ -284,11 +316,20 @@ public class FundRaisingActivity {
                     fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
                     fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
                     fundRaisingActivityResponse.setCreatorAccountStatus(UserAccount.Status.valueOf(rs.getString("creator_account_status")));
+                    fundRaisingActivityResponse.setCategoryId(rs.getInt("category_id"));
                     fundRaisingActivityResponse.setCategoryName(rs.getString("category_name"));
                     fundRaisingActivityResponse.setCategoryStatus(FRACategory.Status.valueOf(rs.getString("category_status")));
                     return fundRaisingActivityResponse;
                 }
         );
+        Long total = DBContext.getJdbcTemplate().queryForObject(
+                countSql,
+                Long.class
+        );
+        PageBean<FundRaisingActivityResponse> pb = new PageBean<>();
+        pb.setItems(fundRaisingActivityResponseList);
+        pb.setTotal(total);
+        return pb;
     }
 
     public FundRaisingActivityResponse viewFundRaisingActivityDetails(@NotNull Integer fundRaisingActivityId) {
@@ -329,6 +370,7 @@ public class FundRaisingActivity {
                         fundRaisingActivityResponse.setCreatorName(rs.getString("creator_name"));
                         fundRaisingActivityResponse.setCreatorRole(UserProfile.Name.valueOf(rs.getString("creator_role")));
                         fundRaisingActivityResponse.setCreatorAccountStatus(UserAccount.Status.valueOf(rs.getString("creator_account_status")));
+                        fundRaisingActivityResponse.setCategoryId(rs.getInt("category_id"));
                         fundRaisingActivityResponse.setCategoryName(rs.getString("category_name"));
                         fundRaisingActivityResponse.setCategoryStatus(FRACategory.Status.valueOf(rs.getString("category_status")));
                         return fundRaisingActivityResponse;

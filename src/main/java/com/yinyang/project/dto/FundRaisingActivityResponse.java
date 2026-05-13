@@ -29,6 +29,7 @@ public class FundRaisingActivityResponse {
     private UserProfile.Name creatorRole;
     private UserAccount.Status creatorAccountStatus;
 
+    private Integer categoryId;
     private String categoryName;
     private FRACategory.Status categoryStatus;
 

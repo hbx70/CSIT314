@@ -26,14 +26,8 @@ public class SearchFundRaisingActivitiesController {
         Integer currentUserId = (Integer) claims.get("id");
         if (currentUserRole == UserProfile.Name.FUND_RAISER) {
             fundRaisingActivity = new FundRaisingActivity();
-            // start the pagination
-            PageHelper.startPage(pageNum, pageSize);
-            // get all fund raising activities
-            List<FundRaisingActivityResponse> fundRaisingActivityResponseList = fundRaisingActivity.searchFundRaisingActivities(title, status, categoryId, order, currentUserId);
-            // set the pagination result
-            Page<FundRaisingActivityResponse> page = (Page<FundRaisingActivityResponse>) fundRaisingActivityResponseList;
-            pb.setTotal(page.getTotal());
-            pb.setItems(page.getResult());
+            Integer offset = (pageNum - 1) * pageSize;
+            pb = fundRaisingActivity.searchFundRaisingActivities(title, status, categoryId, order, currentUserId, pageSize, offset);
         }
         return pb;
     }
