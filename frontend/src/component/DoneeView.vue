@@ -67,26 +67,50 @@
             </div>
         </main>
 
-        <el-drawer v-model="drawer" direction="rtl" size="400px">
-            <template #header>
-                <div class="drawerHeader">
-                    <span class="categoryBadge">{{ selected?.category }}</span>
-                    <h3>{{ selected?.title }}</h3>
-                </div>
-            </template>
-            <div class="drawerBody" v-if="selected">
-                <div class="descriptionBox">
-                    <p>Your contribution will directly support the {{ selected.category }} program. Join us today to
-                        make a
-                        difference!</p>
+        <el-drawer v-model="drawer" direction="rtl" size="42%" :with-header="false" class="fra-detail-drawer">
+            <div class="drawer-container" v-if="selected">
+                <div class="drawer-header">
+                    <div>
+                        <el-tag size="large">{{ selected.categoryName }}</el-tag>
+                        <h1>{{ selected.title }}</h1>
+                        <p class="drawer-description">
+                            {{ selected.description }}
+                        </p>
+                    </div>
                 </div>
 
-                <div class="drawerStatsGrid">
-                    <div class="statItem"><label>VIEWS</label><span>{{ selected.views }}</span></div>
-                    <div class="statItem"><label>FAVORITES</label><span>{{ selected.favCount }}</span></div>
+                <div class="amount-section">
+                    <div class="amount-card">
+                        <span>Current Amount</span>
+                        <h2>${{ formatNumber(selected.currentAmount) }}</h2>
+                    </div>
+                    <div class="amount-card">
+                        <span>Target Amount</span>
+                        <h2>${{ formatNumber(selected.targetAmount) }}</h2>
+                    </div>
                 </div>
 
-                <div class="drawerActions">
+                <div class="progress-section">
+                    <div class="progress-top">
+                        <span>Fund Raising Progress</span>
+                        <span>{{ Math.min(Math.round((selected.currentAmount / selected.targetAmount) * 100), 100) }}%</span>
+                    </div>
+                    <el-progress :percentage="Math.min(Math.round((selected.currentAmount / selected.targetAmount) * 100), 100)" 
+                        :stroke-width="12" :show-text="false" status="success" />
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span class="material-symbols-outlined">visibility</span>
+                        <p>{{ selected.viewCount }} Views</p>
+                    </div>
+                    <div class="stat-box">
+                        <span class="material-symbols-outlined">star</span>
+                        <p>{{ selected.shortlistCount }} Saved</p>
+                    </div>
+                </div>
+
+                <div class="drawerActions" style="margin-top: 40px;">
                     <button class="donateBtn" @click="donate(selected)">
                         <span class="material-symbols-outlined">payments</span> Donate $100
                     </button>
@@ -154,300 +178,52 @@ const formatNumber = (num) => {
 </script>
 
 <style scoped>
-.doneePage {
-    background: #fcfcfd;
-    min-height: 100vh;
-}
+/* 保持原有页面样式不变 */
+.doneePage { background: #fcfcfd; min-height: 100vh; }
+.pageHeader { background: white; padding: 40px 20px; border-bottom: 1px solid #f1f5f9; text-align: center; }
+.mainTitle { font-size: 32px; font-weight: 900; color: #0f172a; margin-bottom: 25px; }
+.gridWrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 40px; }
+.projectCard { background: white; border-radius: 32px; padding: 32px; border: 1px solid #f1f5f9; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02); cursor: pointer; transition: 0.3s; }
+.projectCard:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06); }
+.cardTop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.categoryBadge { background: #eff6ff; color: #3b82f6; font-size: 10px; font-weight: 900; padding: 6px 12px; border-radius: 8px; text-transform: uppercase; }
+.statusDot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+.statusDot.active { background: #10b981; box-shadow: 0 0 8px #10b981; }
+.projectTitle { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
+.fundingRow { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.percentText { color: #3b82f6; font-weight: 800; font-size: 14px; }
+.progressBar { height: 8px; background: #f1f5f9; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+.progressBar .fill { height: 100%; background: #3b82f6; border-radius: 10px; transition: width 0.3s ease; }
+.statBox { display: flex; gap: 12px; margin-top: 14px; justify-content: flex-end; }
+.statItem { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+.statItem.views { background: rgba(245, 247, 250, 0.95); color: #4b5563; border: 1px solid rgba(209, 213, 219, 0.7); }
+.statItem.shortlist { background: rgba(255, 248, 235, 0.95); color: #d97706; border: 1px solid rgba(251, 191, 36, 0.45); }
+.filterBlock { display: flex; flex-direction: column; gap: 10px; margin-bottom: 35px; align-items: center; padding: 0 60px; }
+.filterBlock .title { font-size: 20px; font-weight: 500; }
+.filterContainer { display: flex; gap: 10px; }
+.radioGroupContainer { display: flex; flex-direction: column; gap: 5px; }
 
-.pageHeader {
-    background: white;
-    padding: 40px 20px;
-    border-bottom: 1px solid #f1f5f9;
-    text-align: center;
-}
+/* 重点修改：Fundraiser 风格的抽屉内部样式 */
+.fra-detail-drawer :deep(.el-drawer) { border-radius: 28px 0 0 28px; overflow: hidden; }
+.drawer-container { padding: 40px; background: #f8fafc; min-height: 100%; text-align: left; }
+.drawer-header h1 { margin: 15px 0; font-size: 32px; font-weight: 800; color: #111827; }
+.drawer-description { font-size: 16px; line-height: 1.8; color: #6b7280; }
+.amount-section { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.amount-card { background: white; border-radius: 22px; padding: 28px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04); }
+.amount-card span { color: #6b7280; font-size: 14px; font-weight: 600; }
+.amount-card h2 { margin-top: 14px; font-size: 30px; color: #111827; font-weight: 800; }
+.progress-section { margin-top: 30px; background: white; padding: 28px; border-radius: 22px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04); }
+.progress-top { display: flex; justify-content: space-between; margin-bottom: 18px; font-weight: 700; color: #111827; }
+.stats-grid { margin-top: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.stat-box { background: white; padding: 18px; border-radius: 20px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04); display: flex; align-items: center; gap: 12px; }
+.stat-box p { margin: 0; font-weight: 700; color: #111827; }
+.stat-box .material-symbols-outlined { color: #94a3b8; }
 
-.mainTitle {
-    font-size: 32px;
-    font-weight: 900;
-    color: #0f172a;
-    margin-bottom: 25px;
-}
-
-.searchBar {
-    display: flex;
-    align-items: center;
-    background: white;
-    border: 1px solid #e2e8f0;
-    padding: 12px 20px;
-    border-radius: 16px;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.searchBar input {
-    border: none;
-    outline: none;
-    flex: 1;
-    margin-left: 10px;
-    font-size: 14px;
-}
-
-/* 网格布局 */
-.gridWrapper {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 25px;
-    padding: 40px;
-}
-
-/* 卡片样式 - 去除了底部按钮空间 */
-.projectCard {
-    background: white;
-    border-radius: 32px;
-    padding: 32px;
-    border: 1px solid #f1f5f9;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.projectCard:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-}
-
-.cardTop {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.categoryBadge {
-    background: #eff6ff;
-    color: #3b82f6;
-    font-size: 10px;
-    font-weight: 900;
-    padding: 6px 12px;
-    border-radius: 8px;
-    text-transform: uppercase;
-}
-
-.statusDot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #cbd5e1;
-}
-
-.statusDot.active {
-    background: #10b981;
-    box-shadow: 0 0 8px #10b981;
-}
-
-.projectTitle {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 20px;
-}
-
-.fundingRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 8px;
-}
-
-.percentText {
-    color: #3b82f6;
-    font-weight: 800;
-    font-size: 14px;
-}
-
-.progressBar {
-    height: 8px;
-    background: #f1f5f9;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.progressBar .fill {
-    height: 100%;
-    background: #3b82f6;
-    border-radius: 10px;
-    transition: width 0.3s ease;
-}
-
-.statsRow {
-    display: flex;
-    gap: 10px;
-}
-
-.statPill {
-    background: #f8fafc;
-    border: 1px solid #f1f5f9;
-    padding: 6px 14px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #64748b;
-}
-
-/* 抽屉内部样式 */
-.drawerHeader h3 {
-    margin-top: 10px;
-    font-size: 24px;
-    font-weight: 800;
-    color: #0f172a;
-}
-
-.descriptionBox {
-    background: #f8fafc;
-    padding: 24px;
-    border-radius: 20px;
-    color: #64748b;
-    line-height: 1.6;
-    margin: 20px 0;
-}
-
-.drawerStatsGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.statBox {
-    display: flex;
-    gap: 12px;
-    margin-top: 14px;
-    justify-content: flex-end;
-}
-
-.statItem {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    backdrop-filter: blur(8px);
-}
-
-.statItem .material-symbols-outlined {
-    font-size: 18px;
-}
-
-.statItem.views {
-    background: rgba(245, 247, 250, 0.95);
-    color: #4b5563;
-    border: 1px solid rgba(209, 213, 219, 0.7);
-}
-
-.statItem.shortlist {
-    background: rgba(255, 248, 235, 0.95);
-    color: #d97706;
-    border: 1px solid rgba(251, 191, 36, 0.45);
-}
-
-.statItem .material-symbols-outlined {
-    font-variation-settings:
-        'FILL' 0,
-        'wght' 300,
-        'GRAD' 200,
-        'opsz' 48;
-    font-size: 20px;
-    transition: all 0.3s ease;
-}
-
-
-/* 抽屉操作按钮 */
-.drawerActions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.donateBtn {
-    width: 100%;
-    padding: 18px;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 18px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.donateBtn:hover {
-    background: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
-}
-
-.saveBtn {
-    width: 100%;
-    padding: 18px;
-    background: #f1f5f9;
-    color: #64748b;
-    border: none;
-    border-radius: 18px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.saveBtn:hover {
-    background: #e2e8f0;
-}
-
-.saveBtn.isSaved {
-    background: #fff1f2;
-    color: #e11d48;
-}
-
-
-
-
-
-
-.filterBlock {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 35px;
-    align-items: center;
-    padding: 0 60px;
-}
-
-.filterBlock .title {
-    font-size: 20px;
-    font-weight: 500;
-}
-
-.filterContainer {
-    display: flex;
-    gap: 10px;
-}
-
-.radioGroupContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
+/* 底部操作按钮 */
+.drawerActions { display: flex; flex-direction: column; gap: 12px; }
+.donateBtn { width: 100%; padding: 20px; background: #3b82f6; color: white; border: none; border-radius: 20px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; }
+.donateBtn:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
+.saveBtn { width: 100%; padding: 20px; background: #f1f5f9; color: #64748b; border: none; border-radius: 20px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; }
+.saveBtn:hover { background: #e2e8f0; }
+.saveBtn.isSaved { background: #fff1f2; color: #e11d48; }
 </style>
