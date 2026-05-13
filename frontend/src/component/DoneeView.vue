@@ -110,17 +110,33 @@
                     </div>
                 </div>
 
-                <div class="drawerActions" style="margin-top: 40px;">
-                    <button class="donateBtn" @click="donate(selected)">
-                        <span class="material-symbols-outlined">payments</span> Donate $100
-                    </button>
+                <div class="donation-actions-area" style="margin-top: 40px;">
+                    <p class="action-label">Enter Donation Amount ($)</p>
+                    <div class="custom-amount-input">
+                        <el-input-number 
+                            v-model="donationAmount" 
+                            :min="1" 
+                            :precision="2" 
+                            :step="10"
+                            size="large"
+                            controls-position="right"
+                            style="width: 100%; margin-bottom: 20px;"
+                        />
+                    </div>
 
-                    <button :class="['saveBtn', { isSaved: isSaved(selected.id) }]" @click="toggleSave(selected.id)">
-                        <span class="material-symbols-outlined">
-                            {{ isSaved(selected.id) ? 'bookmark_added' : 'bookmark' }}
-                        </span>
-                        {{ isSaved(selected.id) ? 'Saved to Collection' : 'Save for Later' }}
-                    </button>
+                    <div class="drawerActions">
+                        <button class="donateBtn" @click="donate(selected, donationAmount)">
+                            <span class="material-symbols-outlined">payments</span> 
+                            Donate ${{ formatNumber(donationAmount) }} Now
+                        </button>
+
+                        <button :class="['saveBtn', { isSaved: isSaved(selected.id) }]" @click="toggleSave(selected.id)">
+                            <span class="material-symbols-outlined">
+                                {{ isSaved(selected.id) ? 'bookmark_added' : 'bookmark' }}
+                            </span>
+                            {{ isSaved(selected.id) ? 'Saved in Collection' : 'Save for Later' }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </el-drawer>
@@ -134,6 +150,7 @@ import { ref, onMounted } from 'vue'
 
 const drawer = ref(false)
 const selected = ref(null)
+const donationAmount = ref(0) // 初始为0，由用户输入
 
 const filter = ref({
     pageNum: 1,
@@ -166,6 +183,7 @@ onMounted(() => {
 
 const openDetails = (fra) => {
     selected.value = fra;
+    donationAmount.value = 0; // 每次打开重置金额
     drawer.value = true;
 }
 
@@ -178,7 +196,6 @@ const formatNumber = (num) => {
 </script>
 
 <style scoped>
-/* 保持原有页面样式不变 */
 .doneePage { background: #fcfcfd; min-height: 100vh; }
 .pageHeader { background: white; padding: 40px 20px; border-bottom: 1px solid #f1f5f9; text-align: center; }
 .mainTitle { font-size: 32px; font-weight: 900; color: #0f172a; margin-bottom: 25px; }
@@ -203,7 +220,7 @@ const formatNumber = (num) => {
 .filterContainer { display: flex; gap: 10px; }
 .radioGroupContainer { display: flex; flex-direction: column; gap: 5px; }
 
-/* 重点修改：Fundraiser 风格的抽屉内部样式 */
+/* Fundraiser 风格的抽屉内部样式 */
 .fra-detail-drawer :deep(.el-drawer) { border-radius: 28px 0 0 28px; overflow: hidden; }
 .drawer-container { padding: 40px; background: #f8fafc; min-height: 100%; text-align: left; }
 .drawer-header h1 { margin: 15px 0; font-size: 32px; font-weight: 800; color: #111827; }
@@ -219,7 +236,10 @@ const formatNumber = (num) => {
 .stat-box p { margin: 0; font-weight: 700; color: #111827; }
 .stat-box .material-symbols-outlined { color: #94a3b8; }
 
-/* 底部操作按钮 */
+/* 捐赠操作区域样式 */
+.action-label { font-size: 14px; font-weight: 700; color: #64748b; margin-bottom: 12px; text-transform: uppercase; }
+.custom-amount-input :deep(.el-input__wrapper) { border-radius: 12px; padding: 5px 15px; }
+
 .drawerActions { display: flex; flex-direction: column; gap: 12px; }
 .donateBtn { width: 100%; padding: 20px; background: #3b82f6; color: white; border: none; border-radius: 20px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; }
 .donateBtn:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
