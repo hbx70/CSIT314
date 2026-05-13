@@ -3,11 +3,13 @@ import { createRouter, createWebHistory } from "vue-router";
 // 这里的路径必须和你新建的文件名完全一致
 import LoginView from "../component/LoginView.vue";
 import AdminUserAccountView from "../component/AdminUserAccountView.vue";
-import DoneeView from "../component/DoneeView.vue";
 import FundRaiserView from "../component/FundRaiserView.vue";
 import PMCategoryView from "../component/PMCategoryView.vue";
 import AdminUserProfileView from "@/component/AdminUserProfileView.vue";
 import PMReportView from "@/component/PMReportView.vue";
+import DoneeView from '../component/DoneeView.vue'
+import DoneeSave from '../component/DoneeSave.vue'
+import DoneeHistory from '../component/DoneeHistory.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -25,8 +27,18 @@ const router = createRouter({
         //meta: { requiresAuth: true, role: "PROFILE" },
     },
     {
-        path: "/donee",
+        path: "/donee/explore",
         component: DoneeView,
+        //meta: { requiresAuth: true, role: "DONEE" },
+    },
+    {
+        path: "/donee/saved",
+        component: DoneeSave,
+        //meta: { requiresAuth: true, role: "DONEE" },
+    },
+    {
+        path: "/donee/history",
+        component: DoneeHistory,
         //meta: { requiresAuth: true, role: "DONEE" },
     },
     {

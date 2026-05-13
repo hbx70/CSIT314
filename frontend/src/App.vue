@@ -8,22 +8,42 @@
 
                     <template v-if="userInfoStore.info.userProfileName === 'ADMIN'">
                         <div class="nav-item-wrapper" @click="$router.push('/admin/account')">
-                            <div :class="['nav-btn ad-theme', { active: $route.path === '/admin/account' }]"><span class="material-symbols-outlined">account_circle</span></div>
+                            <div :class="['nav-btn ad-theme', { active: $route.path === '/admin/account' }]"><span
+                                    class="material-symbols-outlined">account_circle</span></div>
                             <span class="nav-label">Account</span>
                         </div>
                         <div class="nav-item-wrapper" @click="$router.push('/admin/profile')">
-                            <div :class="['nav-btn', { active: $route.path === '/admin/profile' }]"><span class="material-symbols-outlined">badge</span></div>
+                            <div :class="['nav-btn', { active: $route.path === '/admin/profile' }]"><span
+                                    class="material-symbols-outlined">badge</span></div>
                             <span class="nav-label">Profile</span>
+                        </div>
+                    </template>
+                    <template v-else-if="userInfoStore.info.role === 'DONEE'">
+                        <div class="nav-item-wrapper" @click="$router.push('/donee/explore')">
+                            <div :class="['nav-btn', { active: $route.path === '/donee/explore' }]">
+                                <span class="material-symbols-outlined">volunteer_activism</span>
+                            </div>
+                            <span class="nav-label">Explore</span>
+                        </div>
+                        <div class="nav-item-wrapper" @click="$router.push('/donee/saved')">
+                            <div :class="['nav-btn', { active: $route.path === '/donee/saved' }]"><span class="material-symbols-outlined">star</span></div>
+                            <span class="nav-label">Saved</span>
+                        </div>
+                        <div class="nav-item-wrapper" @click="$router.push('/donee/history')">
+                            <div :class="['nav-btn', { active: $route.path === '/donee/history' }]"><span class="material-symbols-outlined">history</span></div>
+                            <span class="nav-label">History</span>
                         </div>
                     </template>
 
                     <template v-else-if="userInfoStore.info.userProfileName === 'PLATFORM_MANAGER'">
                         <div class="nav-item-wrapper" @click="$router.push('/manager/category')">
-                            <div :class="['nav-btn', { active: $route.path === '/manager/category' }]"><span class="material-symbols-outlined">category</span></div>
+                            <div :class="['nav-btn', { active: $route.path === '/manager/category' }]"><span
+                                    class="material-symbols-outlined">category</span></div>
                             <span class="nav-label">Category</span>
                         </div>
                         <div class="nav-item-wrapper" @click="$router.push('/manager/report')">
-                            <div :class="['nav-btn', { active: $route.path === '/manager/report' }]"><span class="material-symbols-outlined">analytics</span></div>
+                            <div :class="['nav-btn', { active: $route.path === '/manager/report' }]"><span
+                                    class="material-symbols-outlined">analytics</span></div>
                             <span class="nav-label">Report</span>
                         </div>
                     </template>
@@ -60,7 +80,6 @@ const logout = () => {
 </script>
 
 <style>
-
 .material-symbols-outlined {
     font-variation-settings:
         'FILL' 0,
