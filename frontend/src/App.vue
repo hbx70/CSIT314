@@ -18,7 +18,7 @@
                             <span class="nav-label">Profile</span>
                         </div>
                     </template>
-                    <template v-else-if="userInfoStore.info.role === 'DONEE'">
+                    <template v-else-if="userInfoStore.info.userProfileName === 'DONEE'">
                         <div class="nav-item-wrapper" @click="$router.push('/donee/explore')">
                             <div :class="['nav-btn', { active: $route.path === '/donee/explore' }]">
                                 <span class="material-symbols-outlined">volunteer_activism</span>
