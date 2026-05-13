@@ -42,7 +42,7 @@
                     <h2 class="projectTitle">{{ fra.title }}</h2>
                     <div class="fundingRow">
                         <span><b>${{ formatNumber(fra.currentAmount) }}</b> / <small>${{ formatNumber(fra.targetAmount)
-                                }}</small></span>
+                        }}</small></span>
                         <span class="percentText">{{ Math.round((fra.currentAmount / fra.targetAmount) * 100) }}%</span>
                     </div>
                     <div class="progressBar">
@@ -95,7 +95,7 @@
                     <div class="progress-top">
                         <span>Fund Raising Progress</span>
                         <span>{{ Math.min(Math.round((selected.currentAmount / selected.targetAmount) * 100), 100)
-                        }}%</span>
+                            }}%</span>
                     </div>
                     <el-progress
                         :percentage="Math.min(Math.round((selected.currentAmount / selected.targetAmount) * 100), 100)"
@@ -113,10 +113,27 @@
                     </div>
                 </div>
 
-                <div class="drawerActions" style="margin-top: 40px;">
-                    <button class="donateBtn" @click="donate(selected)">
-                        <span class="material-symbols-outlined">payments</span> Donate $100
-                    </button>
+                <div class="donation-actions-area" style="margin-top: 40px;">
+                    <p class="action-label">Enter Donation Amount ($)</p>
+                    <div class="custom-amount-input">
+                        <el-input-number v-model="donationAmount" :min="1" :precision="2" :step="10" size="large"
+                            controls-position="right" style="width: 100%; margin-bottom: 20px;" />
+                    </div>
+
+                    <div class="drawerActions">
+                        <button class="donateBtn" @click="donate(selected, donationAmount)">
+                            <span class="material-symbols-outlined">payments</span>
+                            Donate ${{ formatNumber(donationAmount) }} Now
+                        </button>
+
+                        <button :class="['saveBtn', { isSaved: isSaved(selected.id) }]"
+                            @click="toggleSave(selected.id)">
+                            <span class="material-symbols-outlined">
+                                {{ isSaved(selected.id) ? 'bookmark_added' : 'bookmark' }}
+                            </span>
+                            {{ isSaved(selected.id) ? 'Saved in Collection' : 'Save for Later' }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </el-drawer>
@@ -176,7 +193,6 @@ const formatNumber = (num) => {
 </script>
 
 <style scoped>
-/* 保持原有页面样式不变 */
 .doneePage {
     background: #fcfcfd;
     min-height: 100vh;
@@ -336,7 +352,7 @@ const formatNumber = (num) => {
     gap: 5px;
 }
 
-/* 重点修改：Fundraiser 风格的抽屉内部样式 */
+/* Fundraiser 风格的抽屉内部样式 */
 .fra-detail-drawer :deep(.el-drawer) {
     border-radius: 28px 0 0 28px;
     overflow: hidden;
@@ -432,7 +448,20 @@ const formatNumber = (num) => {
     color: #94a3b8;
 }
 
-/* 底部操作按钮 */
+/* 捐赠操作区域样式 */
+.action-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.custom-amount-input :deep(.el-input__wrapper) {
+    border-radius: 12px;
+    padding: 5px 15px;
+}
+
 .drawerActions {
     display: flex;
     flex-direction: column;
