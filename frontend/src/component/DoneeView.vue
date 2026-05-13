@@ -117,13 +117,6 @@
                     <button class="donateBtn" @click="donate(selected)">
                         <span class="material-symbols-outlined">payments</span> Donate $100
                     </button>
-
-                    <button :class="['saveBtn', { isSaved: isSaved(selected.id) }]" @click="toggleSave(selected.id)">
-                        <span class="material-symbols-outlined">
-                            {{ isSaved(selected.id) ? 'bookmark_added' : 'bookmark' }}
-                        </span>
-                        {{ isSaved(selected.id) ? 'Saved to Collection' : 'Save for Later' }}
-                    </button>
                 </div>
             </div>
         </el-drawer>
