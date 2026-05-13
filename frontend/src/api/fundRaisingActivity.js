@@ -19,3 +19,14 @@ export const activateFundRaisingActivityService = (fundRaisingActivityId) => {
 export const updateFundRaisingActivityService = (newFundRaisingActivityData) => {
     return request.put("/fra/update", newFundRaisingActivityData)
 }
+
+export const searchFundRaisingActivitiesService = (pageNum, pageSize, title, status, categoryId, order) => {
+    return request.get("/fra/search", {params: {
+        pageNum: pageNum,
+        pageSize: pageSize,
+        title: title,
+        status: status,
+        categoryId: categoryId,
+        order: order
+    }})
+}
