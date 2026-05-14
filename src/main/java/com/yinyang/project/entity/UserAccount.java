@@ -2,6 +2,8 @@ package com.yinyang.project.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yinyang.project.DBContext;
+import com.yinyang.project.dto.MultiTrendDataResponse;
+import com.yinyang.project.dto.TrendDataResponse;
 import com.yinyang.project.utils.JwtUtil;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -9,11 +11,11 @@ import lombok.Setter;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.temporal.WeekFields;
+import java.util.*;
 
 @Setter
 @Getter
@@ -275,5 +277,138 @@ public class UserAccount {
             return null;
         }
         return null;
+    }
+
+    public TrendDataResponse getUserAccountGrowthTrendReport(@NotNull Integer size, Report.@NotNull Range range) {
+        String userGrowthSql =
+                "SELECT DATE_FORMAT(created_at, ?) AS label, " +
+                        "COUNT(*) AS total_users " +
+                        "FROM user_account " +
+                        "GROUP BY label " +
+                        "ORDER BY label";
+
+        Map<String, BigDecimal> userGrowthMap = this.initializeRange(size, range);
+        String dateFormat = this.getDateFormat(range);
+
+        DBContext.getJdbcTemplate().query(
+                userGrowthSql,
+                new Object[]{dateFormat},
+                rs -> {
+                    String label = rs.getString("label");
+                    BigDecimal totalUsers = BigDecimal.valueOf(rs.getInt("total_users"));
+                    if (userGrowthMap.containsKey(label)) {
+                        userGrowthMap.put(label, totalUsers);
+                    }
+                }
+        );
+
+        TrendDataResponse userGrowth = new TrendDataResponse();
+        userGrowth.setLabels(new ArrayList<>(userGrowthMap.keySet()));
+        userGrowth.setValues(new ArrayList<>(userGrowthMap.values()));
+
+        return userGrowth;
+    }
+
+    public MultiTrendDataResponse getUserAccountWithProfileGrowthTrendReport(@NotNull Integer size, Report.@NotNull Range range) {
+        String sql =
+                "SELECT DATE_FORMAT(created_at, ?) AS label, " +
+                        "user_profile_name, " +
+                        "COUNT(*) AS total_users " +
+                        "FROM user_account " +
+                        "GROUP BY label, user_profile_name " +
+                        "ORDER BY label";
+
+        Map<String, BigDecimal> baseRange = this.initializeRange(size, range);
+        Map<String, Map<String, BigDecimal>> profileData = new LinkedHashMap<>();
+        String dateFormat = this.getDateFormat(range);
+
+        DBContext.getJdbcTemplate().query(
+                sql,
+                new Object[]{dateFormat},
+                rs -> {
+                    String label = rs.getString("label");
+                    String profile = rs.getString("user_profile_name");
+                    BigDecimal total = BigDecimal.valueOf(rs.getInt("total_users"));
+                    profileData.putIfAbsent(profile, new LinkedHashMap<>(baseRange));
+                    Map<String, BigDecimal> currentProfileMap = profileData.get(profile);
+                    if (currentProfileMap.containsKey(label)) {
+                        currentProfileMap.put(label, total);
+                    }
+                }
+        );
+
+        Map<String, List<BigDecimal>> datasets = new LinkedHashMap<>();
+
+        for (String profile : profileData.keySet()) {
+            datasets.put(profile, new ArrayList<>(profileData.get(profile).values()));
+        }
+
+        MultiTrendDataResponse response = new MultiTrendDataResponse();
+
+        response.setLabels(new ArrayList<>(baseRange.keySet()));
+
+        response.setDatasets(datasets);
+
+        return response;
+    }
+
+    public String getDateFormat(Report.Range range) {
+        String dateFormat;
+        switch (range) {
+            case DAILY:
+                dateFormat = "%Y-%m-%d";
+                break;
+
+            case WEEKLY:
+                dateFormat = "%x-W%v";
+                break;
+
+            case MONTHLY:
+                dateFormat = "%Y-%m";
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid range");
+        }
+        return dateFormat;
+    }
+
+    public Map<String, BigDecimal> initializeRange(Integer size, Report.Range range) {
+        Map<String, BigDecimal> map = new LinkedHashMap<>();
+        LocalDate today = LocalDate.now();
+
+        switch (range) {
+            case DAILY:
+                for (int i = size - 1; i >= 0; i--) {
+                    LocalDate date = today.minusDays(i);
+                    String label = date.toString();
+                    map.put(label, BigDecimal.ZERO);
+                }
+                break;
+
+            case WEEKLY:
+                WeekFields weekFields = WeekFields.ISO;
+                for (int i = size - 1; i >= 0; i--) {
+                    LocalDate date = today.minusWeeks(i);
+                    int weekNumber = date.get(weekFields.weekOfWeekBasedYear());
+                    int year = date.get(weekFields.weekBasedYear());
+                    String label = year + "-W" + String.format("%02d", weekNumber);
+                    map.put(label, BigDecimal.ZERO);
+                }
+                break;
+
+            case MONTHLY:
+                for (int i = size - 1; i >= 0; i--) {
+                    LocalDate date = today.minusMonths(i);
+                    String label = date.getYear() + "-" + String.format("%02d", date.getMonthValue());
+                    map.put(label, BigDecimal.ZERO);
+                }
+
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid range");
+        }
+        return map;
     }
 }
