@@ -167,6 +167,8 @@ public class FundRaisingActivity {
         if (status != null) {
             sql.append(" AND fra.status = ?");
             params.add(status.name());
+        } else {
+            sql.append(" AND fra.status IN ('ACTIVE', 'SUSPENDED')");
         }
 
         if (categoryId != null) {
