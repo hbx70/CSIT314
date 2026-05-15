@@ -59,7 +59,7 @@ public class FavouriteFRA {
                 "ua.username AS creator_name, ua.user_profile_name AS creator_role, ua.status AS creator_account_status, " +
                 "frac.name AS category_name, frac.status AS category_status " +
                 "FROM favourite_fra fav " +
-                "LETT JOIN fund_raising_activity fra ON fav.fra_id = fra.id" +
+                "LEFT JOIN fund_raising_activity fra ON fav.fra_id = fra.id " +
                 "LEFT JOIN user_account ua ON fra.created_by = ua.id " +
                 "LEFT JOIN fra_category frac ON fra.category_id = frac.id " +
                 "WHERE 1 = 1"
