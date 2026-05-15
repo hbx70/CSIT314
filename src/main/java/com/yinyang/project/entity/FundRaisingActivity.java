@@ -357,6 +357,14 @@ public class FundRaisingActivity {
         );
     }
 
+    public void unsaveFundRaisingActivityFromFavourite(@NotNull Integer fundRaisingActivityId) {
+        String sql = "UPDATE fund_raising_activity SET shortlist_count = shortlist_count - 1 WHERE id = ?";
+        DBContext.getJdbcTemplate().update(
+                sql,
+                fundRaisingActivityId
+        );
+    }
+
     public Integer getNumberOfFRAViews(@NotNull Integer fundRaisingActivityId) {
         if (this.getFundRaisingActivityById(fundRaisingActivityId) != null) {
             String sql = "SELECT view_count FROM fund_raising_activity WHERE id = ?";

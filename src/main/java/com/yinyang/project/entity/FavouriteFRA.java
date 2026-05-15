@@ -28,7 +28,7 @@ public class FavouriteFRA {
                     (rs, rowNum) -> {
                         FavouriteFRA favouriteFRA = new FavouriteFRA();
                         favouriteFRA.setId(rs.getInt("id"));
-                        favouriteFRA.setUserAccountId(rs.getInt(rs.getInt("user_account_id")));
+                        favouriteFRA.setUserAccountId(rs.getInt("user_account_id"));
                         favouriteFRA.setFraId((rs.getInt("fra_id")));
                         favouriteFRA.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         return favouriteFRA;
@@ -47,6 +47,19 @@ public class FavouriteFRA {
                     currentUserId,
                     fundRaisingActivityId,
                     LocalDateTime.now()
+            );
+            return true;
+        }
+        return false;
+    }
+
+    public boolean unsaveFundRaisingActivityFromFavourite(Integer currentUserId, @NotNull Integer fundRaisingActivityId) {
+        if (this.getFavouriteFRAByUserIdAndFRAId(currentUserId, fundRaisingActivityId) != null) {
+            String sql = "DELETE FROM favourite_fra WHERE user_account_id = ? AND fra_id = ?";
+            DBContext.getJdbcTemplate().update(
+                    sql,
+                    currentUserId,
+                    fundRaisingActivityId
             );
             return true;
         }
