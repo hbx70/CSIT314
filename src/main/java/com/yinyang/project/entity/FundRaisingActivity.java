@@ -127,16 +127,20 @@ public class FundRaisingActivity {
     }
 
     public boolean updateFundRaisingActivity(FundRaisingActivity newFundRaisingActivityData) {
-        String sql = "UPDATE fund_raising_activity SET title = ?, description = ?, target_amount = ?, category_id = ? WHERE id = ?";
-        int row = DBContext.getJdbcTemplate().update(
-                sql,
-                newFundRaisingActivityData.getTitle(),
-                newFundRaisingActivityData.getDescription(),
-                newFundRaisingActivityData.getTargetAmount(),
-                newFundRaisingActivityData.getCategoryId(),
-                newFundRaisingActivityData.getId()
-        );
-        return row == 1;
+        FundRaisingActivity fundRaisingActivity = this.getFundRaisingActivityById(newFundRaisingActivityData.getId());
+        if (fundRaisingActivity != null && fundRaisingActivity.getStatus() != Status.COMPLETED && fundRaisingActivity.getCurrentAmount().compareTo(newFundRaisingActivityData.getTargetAmount()) < 0) {
+            String sql = "UPDATE fund_raising_activity SET title = ?, description = ?, target_amount = ?, category_id = ? WHERE id = ?";
+            int row = DBContext.getJdbcTemplate().update(
+                    sql,
+                    newFundRaisingActivityData.getTitle(),
+                    newFundRaisingActivityData.getDescription(),
+                    newFundRaisingActivityData.getTargetAmount(),
+                    newFundRaisingActivityData.getCategoryId(),
+                    newFundRaisingActivityData.getId()
+            );
+            return row == 1;
+        }
+        return false;
     }
 
     public List<FundRaisingActivityResponse> searchFundRaisingActivities(String title, Status status, Integer categoryId, @NotBlank String order, Integer currentUserId) {
