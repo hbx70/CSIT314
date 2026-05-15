@@ -11,18 +11,18 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class ViewAllFundRaisingActivitiesController {
+public class ViewAllOngoingFundRaisingActivitiesController {
 
     private FundRaisingActivity fundRaisingActivity;
 
-    public List<FundRaisingActivityResponse> getAllFundRaisingActivities() {
+    public List<FundRaisingActivityResponse> getAllOngoingFundRaisingActivities() {
         List<FundRaisingActivityResponse> fundRaisingActivityResponseList = new ArrayList<>();
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
         Integer currentUserId = (Integer) claims.get("id");
         if (currentUserRole == UserProfile.Name.FUND_RAISER) {
             fundRaisingActivity = new FundRaisingActivity();
-            fundRaisingActivityResponseList = fundRaisingActivity.getAllFundRaisingActivities(currentUserId);
+            fundRaisingActivityResponseList = fundRaisingActivity.getAllOngoingFundRaisingActivities(currentUserId);
         }
         return fundRaisingActivityResponseList;
     }

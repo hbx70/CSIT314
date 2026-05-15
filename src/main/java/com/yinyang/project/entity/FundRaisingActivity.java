@@ -93,14 +93,14 @@ public class FundRaisingActivity {
         return false;
     }
 
-    public List<FundRaisingActivityResponse> getAllFundRaisingActivities(Integer currentUserId) {
+    public List<FundRaisingActivityResponse> getAllOngoingFundRaisingActivities(Integer currentUserId) {
         String sql = "SELECT fra.*, " +
                 "ua.username AS creator_name, ua.user_profile_name AS creator_role, ua.status AS creator_account_status, " +
                 "frac.name AS category_name, frac.status AS category_status " +
                 "FROM fund_raising_activity fra " +
                 "LEFT JOIN user_account ua ON fra.created_by = ua.id " +
                 "LEFT JOIN fra_category frac ON fra.category_id = frac.id " +
-                "WHERE fra.created_by = ? ORDER BY fra.created_at DESC";
+                "WHERE fra.created_by = ? AND fra.status IN ('ACTIVE', 'SUSPENDED') ORDER BY fra.created_at DESC";
         return DBContext.getJdbcTemplate().query(
                 sql,
                 new Object[]{currentUserId},

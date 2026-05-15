@@ -1,6 +1,6 @@
 package com.yinyang.project.boundary;
 
-import com.yinyang.project.controller.ViewAllFundRaisingActivitiesController;
+import com.yinyang.project.controller.ViewAllOngoingFundRaisingActivitiesController;
 import com.yinyang.project.dto.FundRaisingActivityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -14,13 +14,13 @@ import java.util.List;
 @RestController
 @Validated
 @RequestMapping("/fra")
-public class ViewAllFundRaisingActivitiesPage {
+public class ViewAllOngoingFundRaisingActivitiesPage {
 
     @Autowired
-    private ViewAllFundRaisingActivitiesController viewAllFundRaisingActivitiesController;
+    private ViewAllOngoingFundRaisingActivitiesController viewAllOngoingFundRaisingActivitiesController;
 
     @GetMapping
-    public List<FundRaisingActivityResponse> getAllFundRaisingActivities() {
-        return viewAllFundRaisingActivitiesController.getAllFundRaisingActivities();
+    public List<FundRaisingActivityResponse> getAllOngoingFundRaisingActivities() {
+        return viewAllOngoingFundRaisingActivitiesController.getAllOngoingFundRaisingActivities();
     }
 }
