@@ -21,7 +21,7 @@ public class ViewHistoryOfCompletedFRAPage {
 
     @GetMapping
     public List<FundRaisingActivityResponse> viewHistoryOfCompletedFRA() {
-        return viewHistoryOfCompletedFRAController.viewHistoryOfCompletedFRA();
+        return viewHistoryOfCompletedFRAController.getHistoryOfCompletedFRA();
     }
 
 }

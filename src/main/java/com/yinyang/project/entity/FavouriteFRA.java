@@ -94,7 +94,7 @@ public class FavouriteFRA {
 
         if (status != null) {
             sql.append(" AND fra.status = ?");
-            params.add(status);
+            params.add(status.name());
         }
 
         sql.append(" ORDER BY fav.created_at DESC");

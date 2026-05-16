@@ -15,7 +15,7 @@ public class ViewHistoryOfCompletedFRAController {
 
     private FundRaisingActivity fundRaisingActivity;
 
-    public List<FundRaisingActivityResponse> viewHistoryOfCompletedFRA() {
+    public List<FundRaisingActivityResponse> getHistoryOfCompletedFRA() {
         List<FundRaisingActivityResponse> fundRaisingActivityResponseList = new ArrayList<>();
         Map<String, Object> claims = ThreadLocalUtil.get();
         UserProfile.Name currentUserRole = UserProfile.Name.valueOf((String) claims.get("role"));
