@@ -17,8 +17,8 @@ public class SuspendFRACategoryPage {
     private SuspendFRACategoryController suspendFRACategoryController;
 
     @PatchMapping
-    public boolean suspendFRACategory(@NotNull Integer FRACategoryId) {
-        return suspendFRACategoryController.suspendFRACategory(FRACategoryId);
+    public boolean suspendFRACategory(@NotNull Integer fraCategoryId) {
+        return suspendFRACategoryController.suspendFRACategory(fraCategoryId);
     }
 
 }

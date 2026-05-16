@@ -17,8 +17,8 @@ public class ActivateFRACategoryPage {
     private ActivateFRACategoryController activateFRACategoryController;
 
     @PatchMapping
-    public boolean activateFRACategory(@NotNull Integer FRACategoryId) {
-        return activateFRACategoryController.activateFRACategory(FRACategoryId);
+    public boolean activateFRACategory(@NotNull Integer fraCategoryId) {
+        return activateFRACategoryController.activateFRACategory(fraCategoryId);
     }
 
 }

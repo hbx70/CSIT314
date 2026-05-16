@@ -24,5 +24,4 @@ public class SearchFavouriteListPage {
     public List<FundRaisingActivityResponse> searchFavouriteList(@RequestParam(required = false) String title, @RequestParam(required = false) FundRaisingActivity.Status status, @RequestParam(required = false) Integer categoryId) {
         return searchFavouriteListController.searchFavouriteList(title, status, categoryId);
     }
-
 }

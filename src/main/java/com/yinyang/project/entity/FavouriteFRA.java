@@ -109,6 +109,7 @@ public class FavouriteFRA {
                     fundRaisingActivityResponse.setDescription(rs.getString("description"));
                     fundRaisingActivityResponse.setViewCount(rs.getInt("view_count"));
                     fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
+                    fundRaisingActivityResponse.setStatus(FundRaisingActivity.Status.valueOf(rs.getString("status")));
                     fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                     fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
                     fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
