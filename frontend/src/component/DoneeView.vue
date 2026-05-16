@@ -4,7 +4,6 @@
             <h1 class="mainTitle">Donation Module</h1>
             <div class="searchContainer">
                 <div class="filterBlock">
-                    <p class="title">My Fund Raising Activities</p>
                     <el-input v-model="filter.title" placeholder="Search Fund Raising Activity Title ..."
                         :prefix-icon="Search" size="large" @input="getAllFundRaisingActivities" />
                     <div class="filterContainer">
@@ -14,12 +13,12 @@
                                 @change="getAllFundRaisingActivities">
                                 <el-radio-button label="Date" value="createdAt" />
                                 <el-radio-button label="Views" value="viewCount" />
-                                <el-radio-button label="shortlists" value="shortlistCount" />
+                                <el-radio-button label="Shortlists" value="shortlistCount" />
                             </el-radio-group>
                         </div>
                         <div class="radioGroupContainer">
                             <p>Category</p>
-                            <el-radio-group v-model="filter.categotyId" size="large" fill="#409eff"
+                            <el-radio-group v-model="filter.categoryId" size="large" fill="#409eff"
                                 @change="getAllFundRaisingActivities">
                                 <el-radio-button label="ALL" value="all" />
                                 <el-radio-button v-for="(category, index) in existCategories" :key="index"
@@ -32,40 +31,49 @@
         </header>
 
         <main class="mainContent">
-            <div class="gridWrapper">
+            <div class="gridWrapper" v-if="fundRaisingActivities.length > 0">
                 <div v-for="(fra, index) in fundRaisingActivities" :key="index" class="projectCard"
                     @click="openDetails(fra)">
                     <div class="cardTop">
                         <span class="categoryBadge">{{ fra.categoryName }}</span>
                         <div class="statusDot" :class="{ active: fra.status === 'ACTIVE' }"></div>
                     </div>
+                    <div class="statInfoContainer">
+                        <div class="cardCreatorInfoContainer">
+                            <el-avatar>{{ fra.creatorName.slice(0, 1) }}</el-avatar>
+                            <div class="cardCreatorInfoBlock">
+                                <p class="name">{{ fra.creatorName }}</p>
+                                <p class="timeInfo">{{ formatTime(fra.createdAt) }}</p>
+                            </div>
+                        </div>
+                        <div class="statBox">
+                            <div class="statItem views">
+                                <span class="material-symbols-outlined">
+                                    visibility
+                                </span>
+                                <span class="statNum">{{ fra.viewCount }}</span>
+                            </div>
+
+                            <div class="statItem shortlist">
+                                <span class="material-symbols-outlined">
+                                    star
+                                </span>
+                                <span class="statNum">{{ fra.shortlistCount }}</span>
+                            </div>
+                        </div>
+                    </div>
                     <h2 class="projectTitle">{{ fra.title }}</h2>
                     <div class="fundingRow">
-                        <span><b>${{ formatNumber(fra.currentAmount) }}</b> / <small>${{ formatNumber(fra.targetAmount)
-                        }}</small></span>
+                        <span><b>${{ formatNumber(fra.currentAmount) }}</b> / <small>${{
+                                formatNumber(fra.targetAmount)}}</small></span>
                         <span class="percentText">{{ Math.round((fra.currentAmount / fra.targetAmount) * 100) }}%</span>
                     </div>
                     <div class="progressBar">
                         <div class="fill" :style="{ width: (fra.currentAmount / fra.targetAmount * 100) + '%' }"></div>
                     </div>
-
-                    <div class="statBox">
-                        <div class="statItem views">
-                            <span class="material-symbols-outlined">
-                                visibility
-                            </span>
-                            <span>{{ fra.viewCount }}</span>
-                        </div>
-
-                        <div class="statItem shortlist">
-                            <span class="material-symbols-outlined">
-                                star
-                            </span>
-                            <span>{{ fra.shortlistCount }}</span>
-                        </div>
-                    </div>
                 </div>
             </div>
+            <el-empty :image-size="200" v-else />
         </main>
 
         <el-drawer v-model="drawer" direction="rtl" size="42%" :with-header="false" class="fra-detail-drawer">
@@ -73,6 +81,13 @@
                 <div class="drawer-header">
                     <div>
                         <el-tag size="large">{{ selected.categoryName }}</el-tag>
+                        <div class="creatorInfoContainer">
+                            <el-avatar size="large">{{ selected.creatorName.slice(0, 1) }}</el-avatar>
+                            <div class="creatorInfoBlock">
+                                <p class="name">{{ selected.creatorName }}</p>
+                                <p class="timeInfo">{{ formatTime(selected.createdAt) }}</p>
+                            </div>
+                        </div>
                         <h1>{{ selected.title }}</h1>
                         <p class="drawer-description">
                             {{ selected.description }}
@@ -95,7 +110,7 @@
                     <div class="progress-top">
                         <span>Fund Raising Progress</span>
                         <span>{{ Math.min(Math.round((selected.currentAmount / selected.targetAmount) * 100), 100)
-                            }}%</span>
+                        }}%</span>
                     </div>
                     <el-progress
                         :percentage="Math.min(Math.round((selected.currentAmount / selected.targetAmount) * 100), 100)"
@@ -113,26 +128,22 @@
                     </div>
                 </div>
 
-                <div class="donation-actions-area" style="margin-top: 40px;">
+                <el-button v-if="!isSaved(selected.id)" @click="saveFRAToFavouriteList()" type="warning" style="width: fit-content;" :icon="Star" round plain size="large">Save This Fund Raising Activity !</el-button>
+                <el-button v-else @click="unsaveFRAFromFavouriteList()" type="danger" style="width: fit-content;" :icon="Delete" round plain size="large">Unsave This Fund Raising Activity !</el-button>
+
+                <div class="donation-actions-area">
                     <p class="action-label">Enter Donation Amount ($)</p>
-                    <div class="custom-amount-input">
-                        <el-input-number v-model="donationAmount" :min="1" :precision="2" :step="10" size="large"
-                            controls-position="right" style="width: 100%; margin-bottom: 20px;" />
-                    </div>
-
-                    <div class="drawerActions">
-                        <button class="donateBtn" @click="donate(selected, donationAmount)">
-                            <span class="material-symbols-outlined">payments</span>
-                            Donate ${{ formatNumber(donationAmount) }} Now
-                        </button>
-
-                        <button :class="['saveBtn', { isSaved: isSaved(selected.id) }]"
-                            @click="toggleSave(selected.id)">
-                            <span class="material-symbols-outlined">
-                                {{ isSaved(selected.id) ? 'bookmark_added' : 'bookmark' }}
-                            </span>
-                            {{ isSaved(selected.id) ? 'Saved in Collection' : 'Save for Later' }}
-                        </button>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <el-input-number v-model="donation.amount" :min="1"
+                            :max="Math.max(1, selected.targetAmount - selected.currentAmount)" :step="10" :precision="2"
+                            controls-position="right" size="large" style="width: 100%;">
+                            <template #prefix>
+                                <span>$</span>
+                            </template>
+                        </el-input-number>
+                        <el-button @click="confirmDonate()" :icon="Position" type="primary" size="large" round>
+                            Donate ${{ formatNumber(donation.amount) }} Now
+                        </el-button>
                     </div>
                 </div>
             </div>
@@ -141,47 +152,140 @@
 </template>
 
 <script setup>
-import { Search } from '@element-plus/icons-vue'
-import { doneeSearchFundRaisingActiviesService } from '@/api/donee'
+import { Search, Position, Star, Delete } from '@element-plus/icons-vue'
+import { doneeMakeDonationService, doneeSaveFRAToFavouriteListService, doneeSearchFavouriteListService, doneeSearchFundRaisingActiviesService, doneeUnsaveFRAFromFavouriteListService, doneeViewDetailsOfFundRaisingActivityService } from '@/api/donee'
 import { ref, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const drawer = ref(false)
 const selected = ref(null)
-const donationAmount = ref(0) // 初始为0，由用户输入
+const donation = ref({
+    fraId: null,
+    amount: 0,
+    status: "CANCELLED"
+})
 
 const filter = ref({
-    pageNum: 1,
-    pageSize: 20,
     title: '',
     categoryId: 'all',
     orderBy: 'createdAt'
 })
 const fundRaisingActivities = ref([])
-const totalFRA = ref(0);
 const existCategories = ref([]);
+const savedFundRaisingActivites = ref(new Set());
 
 const getAllFundRaisingActivities = async () => {
-    const fundRaisingActivitiesData = await doneeSearchFundRaisingActiviesService(filter.value.pageNum, filter.value.pageSize, filter.value.title.trim(), filter.value.categoryId === 'all' ? null : filter.value.category, filter.value.orderBy)
-    fundRaisingActivities.value = fundRaisingActivitiesData.items;
-    totalFRA.value = fundRaisingActivitiesData.total;
-    fundRaisingActivitiesData.items.forEach(fra => {
-        if (existCategories.value.some(category => category.id == fra.categoryId)) return
-        const categoryData = {
-            id: fra.categoryId,
-            name: fra.categoryName
-        }
-        existCategories.value.push(categoryData)
-    });
+    const fundRaisingActivitiesData = await doneeSearchFundRaisingActiviesService(filter.value.title.trim(), filter.value.categoryId === 'all' ? null : filter.value.categoryId, filter.value.orderBy)
+    fundRaisingActivities.value = fundRaisingActivitiesData;
+    if (existCategories.value.length === 0) {
+        fundRaisingActivitiesData.forEach(fra => {
+            if (existCategories.value.some(category => category.id == fra.categoryId)) return
+            const categoryData = {
+                id: fra.categoryId,
+                name: fra.categoryName
+            }
+            existCategories.value.push(categoryData)
+        });
+    }
+    console.log(fundRaisingActivities.value);
+}
+
+const getAllSavedFRA = async () => {
+    const fundRaisingActivitiesData = await doneeSearchFavouriteListService();
+    fundRaisingActivitiesData.forEach(fra => {
+        savedFundRaisingActivites.value.add(fra.id)
+    })
+    console.log(savedFundRaisingActivites.value);
+}
+
+const isSaved = (fraId) => {
+    return savedFundRaisingActivites.value.has(fraId);
 }
 
 onMounted(() => {
     getAllFundRaisingActivities()
+    getAllSavedFRA()
 })
 
-const openDetails = (fra) => {
-    selected.value = fra;
-    donationAmount.value = 0; // 每次打开重置金额
-    drawer.value = true;
+const openDetails = async (fra) => {    
+    const fundRaisingActivityData = await doneeViewDetailsOfFundRaisingActivityService(fra.id);
+    if (fundRaisingActivityData) {
+        fra.viewCount += 1
+        selected.value = fundRaisingActivityData;
+        donation.value.fraId = fra.id
+        donation.value.amount = 0;
+        drawer.value = true;
+    } else {
+        ElMessage.error("Operation failure")
+    }
+}
+
+const confirmDonate = () => {
+    ElMessageBox.confirm(
+        `Are you sure you want to donate $${formatNumber(donation.value.amount)}?`,
+        'Confirm',
+        {
+            confirmButtonText: 'Donate',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+        }
+    )
+        .then(() => {
+            donate('SUCCESS')
+        })
+        .catch(() => {
+            donate('CANCELLED')
+        })
+}
+
+const donate = async (status) => {
+    if (selected.value.targetAmount < selected.value.currentAmount + donation.value.amount) return ElMessage.error("Please enter valid amount")
+    donation.value.status = status
+    console.log(donation.value);
+    
+    const isDonationRecorded = await doneeMakeDonationService(donation.value)
+    if (!isDonationRecorded) return ElMessage.error("Operation failure")
+    if (status==='SUCCESS') {
+        const currentFRA = fundRaisingActivities.value.find(fra => fra.id === selected.value.id);        
+        currentFRA.currentAmount += donation.value.amount
+        selected.value.currentAmount += donation.value.amount
+        ElMessage({
+            type: 'success',
+            message: 'Donate completed',
+        })
+        donation.value.amount = 0
+    } else {
+        ElMessage({
+            type: 'info',
+            message: 'Donate canceled',
+        })
+    }
+}
+
+const saveFRAToFavouriteList = async () => {
+    const isSaved = await doneeSaveFRAToFavouriteListService(selected.value.id);
+    if (isSaved) {
+        ElMessage.success("Saved successfully")
+        const currentFRA = fundRaisingActivities.value.find(fra => fra.id === selected.value.id)
+        savedFundRaisingActivites.value.add(selected.value.id);
+        currentFRA.shortlistCount += 1
+        selected.value.shortlistCount += 1
+    } else {
+        ElMessage.error("Operation failure")
+    }
+}
+
+const unsaveFRAFromFavouriteList = async () => {
+    const isUnsaved = await doneeUnsaveFRAFromFavouriteListService(selected.value.id)
+    if (isUnsaved) {
+        ElMessage.success("Unsaved successfully")
+        const currentFRA = fundRaisingActivities.value.find(fra => fra.id === selected.value.id)
+        savedFundRaisingActivites.value.delete(selected.value.id);
+        currentFRA.shortlistCount -= 1
+        selected.value.shortlistCount -= 1
+    } else {
+        ElMessage.error("Operation failure")
+    }
 }
 
 const formatNumber = (num) => {
@@ -190,9 +294,68 @@ const formatNumber = (num) => {
         maximumFractionDigits: 2
     })
 }
+
+import dayjs from 'dayjs'
+const formatTime = (time) => {
+    return dayjs(time).format("YYYY-MM-DD HH:mm:ss")
+}
 </script>
 
 <style scoped>
+.statInfoContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.creatorInfoContainer {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.creatorInfoBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.creatorInfoBlock .name {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.creatorInfoBlock .timeInfo {
+    font-size: 14px;
+    font-weight: 300;
+    columns: #909399;
+}
+
+.cardCreatorInfoContainer {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.cardCreatorInfoBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.cardCreatorInfoBlock .name {
+    font-size: 16px;
+    font-weight: 450;
+}
+
+.cardCreatorInfoBlock .timeInfo {
+    font-size: 13px;
+    font-weight: 30;
+    columns: #909399;
+}
+
+
 .doneePage {
     background: #fcfcfd;
     min-height: 100vh;
@@ -300,19 +463,16 @@ const formatNumber = (num) => {
 
 .statBox {
     display: flex;
-    gap: 12px;
-    margin-top: 14px;
-    justify-content: flex-end;
+    flex-direction: column;
+    gap: 3px;
 }
 
 .statItem {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 10px;
+    padding: 4px 6px;
     border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
 }
 
 .statItem.views {
@@ -325,6 +485,21 @@ const formatNumber = (num) => {
     background: rgba(255, 248, 235, 0.95);
     color: #d97706;
     border: 1px solid rgba(251, 191, 36, 0.45);
+}
+
+.statItem .material-symbols-outlined {
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 300,
+        'GRAD' 200,
+        'opsz' 48;
+    font-size: 16px;
+    color: #9ca3af;
+}
+
+.statItem .statNum {
+    font-size: 12px;
+    font-weight: 300;
 }
 
 .filterBlock {
@@ -363,6 +538,9 @@ const formatNumber = (num) => {
     background: #f8fafc;
     min-height: 100%;
     text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .drawer-header h1 {
@@ -379,7 +557,6 @@ const formatNumber = (num) => {
 }
 
 .amount-section {
-    margin-top: 30px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
@@ -406,7 +583,6 @@ const formatNumber = (num) => {
 }
 
 .progress-section {
-    margin-top: 30px;
     background: white;
     padding: 28px;
     border-radius: 22px;
@@ -422,7 +598,6 @@ const formatNumber = (num) => {
 }
 
 .stats-grid {
-    margin-top: 25px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
@@ -448,7 +623,6 @@ const formatNumber = (num) => {
     color: #94a3b8;
 }
 
-/* 捐赠操作区域样式 */
 .action-label {
     font-size: 14px;
     font-weight: 700;
@@ -515,5 +689,9 @@ const formatNumber = (num) => {
 .saveBtn.isSaved {
     background: #fff1f2;
     color: #e11d48;
+}
+
+:deep(.fra-detail-drawer .el-drawer__body) {
+    padding: 0;
 }
 </style>

@@ -1,5 +1,13 @@
 import request from '@/utils/request.js'
 
-export const getReportService = (size, range) => {
-    return request.get("/report?size=" + size + "&range=" + range)
+export const getDailyReportService = (size) => {
+    return request.get("/report/daily?size=" + size)
+}
+
+export const getWeeklyReportService = (size) => {
+    return request.get("/report/weekly?size=" + size)
+}
+
+export const getMonthlyReportService = (size) => {
+    return request.get("/report/monthly?size=" + size)
 }

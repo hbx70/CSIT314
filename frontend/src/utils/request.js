@@ -20,8 +20,10 @@ instance.interceptors.request.use(
     }
 )
 
-import router from '@/router';
+
 import { useUserInfoStore } from '@/stores/userInfo';
+import { useRouter } from 'vue-router';
+const router = useRouter()
 instance.interceptors.response.use(
     result=>{
         return result.data;
@@ -32,6 +34,7 @@ instance.interceptors.response.use(
             tokenStore.removeToken();
             const userInfoStore = useUserInfoStore();
             userInfoStore.removeInfo();
+            router.push('/login')
             ElMessage.error("Please Login")
         } else {
             ElMessage.error("Operation failure")

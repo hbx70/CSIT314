@@ -4,18 +4,18 @@
         <el-col :span="18" class="chart-block-container">
             <el-row>
                 <el-col :span="12">
-                    <div :ref="chartRefs.userGrowthLine" class="chart"></div>
-                </el-col>
-                <el-col :span="12">
-                    <div :ref="chartRefs.userGrowthWithProfile" class="chart"></div>
-                </el-col>
-            </el-row>
-            <el-row>
-                <el-col :span="12">
                     <div :ref="chartRefs.donationCount" class="chart"></div>
                 </el-col>
                 <el-col :span="12">
                     <div :ref="chartRefs.donationAmount" class="chart"></div>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-col :span="12">
+                    <div :ref="chartRefs.donationAvg" class="chart"></div>
+                </el-col>
+                <el-col :span="12">
+                    <div :ref="chartRefs.topCategories" class="chart"></div>
                 </el-col>
             </el-row>
         </el-col>
@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import { getReportService } from '@/api/report';
+import { getDailyReportService, getMonthlyReportService, getWeeklyReportService } from '@/api/report';
 import { onMounted, ref } from 'vue';
 import * as echarts from 'echarts'
 
@@ -57,18 +57,24 @@ const filter = ref({
 })
 
 const chartRefs = {
-    userGrowthLine: ref(null),
-    userGrowthWithProfile: ref(null),
     donationCount: ref(null),
-    donationAmount: ref(null)
+    donationAmount: ref(null),
+    donationAvg: ref(null),
+    topCategories: ref(null)
 }
 const charts = {}
 
 const getReport = async () => {
-    const reportData = await getReportService(filter.value.size, filter.value.range);
+    let reportData = {}
+    if (filter.value.range === 'DAILY') {
+        reportData = await getDailyReportService(filter.value.size);
+    } else if (filter.value.range === 'WEEKLY') {
+        reportData = await getWeeklyReportService(filter.value.size)
+    } else {
+        reportData = await getMonthlyReportService(filter.value.size)
+    }
     report.value = reportData
     console.log(reportData);
-
     updateChart()
 }
 
@@ -102,36 +108,49 @@ const chartSetting = (filed, title, xLabel, yLabel, type) => {
     }
 }
 
-const stackedChartSetting = (data, title) => {
-    const series = Object.entries(data.datasets).map(
-        ([name, values]) => ({
-            name,
-            type: 'line',
-            data: values
-        })
-    )
+
+const pieOption = () => {
     return {
         title: {
-            text: title
+            text: 'Donation Top Categories',
+            left: 'center'
         },
+
         tooltip: {
-            trigger: 'axis'
+            trigger: 'item'
         },
 
-        legend: {},
+        legend: {
+            orient: 'vertical',
+            left: 'left'
+        },
 
-        xAxis: {
-            type: 'category',
-            data: data.labels,
-            axisLabel: {
-                rotate: 45
+        series: [
+            {
+                name: 'Donations',
+                type: 'pie',
+                radius: '65%',
+
+                data: (
+                    report.value.donationTopCategories?.topDataList || []
+                ).map(item => ({
+                    name: item.dataName,
+                    value: item.count
+                })),
+
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                },
+
+                label: {
+                    formatter: '{b}: {c} ({d}%)'
+                }
             }
-        },
-
-        yAxis: {
-            type: 'value'
-        },
-        series
+        ]
     }
 }
 
@@ -142,18 +161,16 @@ const initChart = () => {
 }
 
 const updateChart = () => {
-    charts.userGrowthLine.setOption(
-        chartSetting("userGrowth", "User Growth Line Chart", "Date", "Users", "line")
-    )
-    charts.userGrowthWithProfile.setOption(
-        stackedChartSetting(report.value.userProfileGrowth, "User With Proile Growth Line Chart")
-    )
     charts.donationCount.setOption(
         chartSetting("donationCountTrend", "Donee Donation Count Trend Line Chart", "Date", "Count", "line")
     )
     charts.donationAmount.setOption(
-        chartSetting("donationTrend", "Donee Donation Total Amount Trend Line Chart", "Date", "Total Amount", "line")
+        chartSetting("donationAmountTrend", "Donee Donation Total Amount Trend Line Chart", "Date", "Total Amount", "line")
     )
+    charts.donationAvg.setOption(
+        chartSetting("donationAvgTrend", "Donee Donation Average Amount Trend Line Chart", "Date", "Average Amount", "line")
+    )
+    charts.topCategories.setOption(pieOption())
 }
 
 onMounted(() => {

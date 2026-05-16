@@ -1,41 +1,22 @@
 <template>
     <div class="mainContainer">
-        <div class="headerBlock">
-            <div class="titleGroup">
-                <h1>Campaign Dashboard</h1>
-                <p>Manage and track your fundraising impact</p>
-            </div>
-            <button class="actionItem primary" @click="openCreateDrawer">
-                <span class="plusIcon">+</span> New Campaign
-            </button>
-        </div>
-
         <div class="filterBlock">
-            <p class="title">My Fund Raising Activities</p>
+            <p class="title">My Completed Fund Raising Activities</p>
             <el-input v-model="filter.title" placeholder="Search Fund Raising Activity Title ..." :prefix-icon="Search"
-                size="large" @input="searchFundRaisingActivities" />
+                size="large" @input="searchHistoryOfCompletedFRA" />
             <div class="filterContainer">
                 <div class="radioGroupContainer">
                     <p>Order</p>
                     <el-radio-group v-model="filter.order" size="large" fill="#409eff"
-                        @change="searchFundRaisingActivities">
+                        @change="searchHistoryOfCompletedFRA">
                         <el-radio-button label="Ascending" value="ASC" />
                         <el-radio-button label="Descending" value="DESC" />
                     </el-radio-group>
                 </div>
                 <div class="radioGroupContainer">
-                    <p>Status</p>
-                    <el-radio-group v-model="filter.status" size="large" fill="#409eff"
-                        @change="searchFundRaisingActivities">
-                        <el-radio-button label="ALL" value="all" />
-                        <el-radio-button label="ACTIVE" value="ACTIVE" />
-                        <el-radio-button label="SUSPENDED" value="SUSPENDED" />
-                    </el-radio-group>
-                </div>
-                <div class="radioGroupContainer">
                     <p>Category</p>
                     <el-radio-group v-model="filter.categotyId" size="large" fill="#409eff"
-                        @change="searchFundRaisingActivities">
+                        @change="searchHistoryOfCompletedFRA">
                         <el-radio-button label="ALL" value="all" />
                         <el-radio-button v-for="(category, index) in existCategories" :key="index"
                             :label="category.name" :value="category.id" />
@@ -50,7 +31,7 @@
                     :class="{ 'is-locked': fra.status === 'SUSPENDED' }" @click="showFRADetail(fra)">
                     <div class="tagRow">
                         <span><el-tag>{{ fra.categoryName }}</el-tag></span>
-                        <div :class="['status-marker', fra.status === 'ACTIVE' ? 'st-active' : 'st-locked']"></div>
+                        <div :class="['status-marker', fra.status === 'COMPLETED' ? 'st-active' : 'st-locked']"></div>
                     </div>
                     <h3 class="titleItem">{{ fra.title }}</h3>
 
@@ -79,61 +60,10 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="controlBox">
-                        <template v-if="fra.status !== 'COMPLETED'">
-                            <el-button @click.stop :icon="Edit" type="primary" @click="openUpdateDrawer(fra)" round
-                                plain>Update</el-button>
-                            <el-button
-                                @click.stop
-                                @click="fra.status === 'ACTIVE' ? suspendFundRaisingActivity(fra) : activateFundRaisingActivity(fra)"
-                                :icon="fra.status === 'ACTIVE' ? 'Lock' : 'Unlock'"
-                                :type="fra.status === 'ACTIVE' ? 'danger' : 'success'" round plain>{{ fra.status ===
-                                    'ACTIVE' ? 'Suspend' : 'Activate' }}</el-button>
-                        </template>
-                    </div>
                 </div>
             </div>
         </div>
         <el-empty :image-size="200" v-else />
-
-        <el-drawer v-model="showDrawer" title="Create Fund Raising Activity" direction="ltr" size="500px"
-            :before-close="handleClose" class="fra-drawer">
-            <el-form :model="fraForm" label-position="top" size="large" :rules="rules" ref="fraFormRef">
-                <el-form-item label="Title" prop="title">
-                    <el-input v-model="fraForm.title" placeholder="Enter activity title" maxlength="100" show-word-limit
-                        clearable />
-                </el-form-item>
-
-                <el-form-item label="Description" prop="description">
-                    <el-input v-model="fraForm.description" type="textarea" :rows="5"
-                        placeholder="Enter activity description" resize="none" clearable />
-                </el-form-item>
-
-                <el-form-item label="Target Amount" prop="targetAmount">
-                    <el-input-number v-model="fraForm.targetAmount" :min="1" :max="1000000000" :precision="2"
-                        controls-position="right" style="width: 100%;">
-                        <template #prefix>
-                            <span>$</span>
-                        </template>
-                    </el-input-number>
-                </el-form-item>
-
-                <el-form-item label="Category" prop="categoryId">
-                    <el-select v-model="fraForm.categoryId" placeholder="Select category" style="width: 100%;">
-                        <el-option v-for="(category, index) in availableCategories" :key="index" :label="category.name"
-                            :value="category.id" />
-                    </el-select>
-                </el-form-item>
-
-
-                <div style="display: flex; justify-content: flex-end; gap: 12px;">
-                    <el-button @click="close">Cancel</el-button>
-                    <el-button type="primary" @click="handleSubmitFRA">{{ isEditMode ? 'Update' : 'Create'
-                        }}</el-button>
-                </div>
-            </el-form>
-        </el-drawer>
 
         <el-drawer v-model="detailFRAdrawer" size="42%" :with-header="false" class="fra-detail-drawer">
             <div class="drawer-container">
@@ -149,7 +79,7 @@
                         </p>
                     </div>
 
-                    <el-tag :type="currentFra.status === 'ACTIVE' ? 'success' : currentFra.status === 'SUSPENDED' ? 'danger' : 'info'" size="large">
+                    <el-tag :type="currentFra.status === 'COMPLETED' ? 'success' : 'danger'">
                         {{ currentFra.status }}
                     </el-tag>
                 </div>
@@ -194,7 +124,6 @@
                     </div>
                 </div>
 
-                <!-- Footer Info -->
                 <div class="footer-info">
 
                     <div class="info-item">
@@ -210,7 +139,7 @@
                         <p style="display: flex; align-items: center; gap: 10px;">
                             <div :class="['status-marker', currentFra.categoryStatus === 'ACTIVE' ? 'st-active' : 'st-locked']"></div>
                             <el-tag :type="currentFra.categoryStatus === 'ACTIVE' ? 'success' : 'danger'">
-                                {{ currentFra.categoryStatus }}
+                                {{ currentFra.status }}
                             </el-tag>
                         </p>
                     </div>
@@ -223,41 +152,22 @@
 </template>
 
 <script setup>
-import { Edit, Lock, Unlock, Search } from '@element-plus/icons-vue'
-import { searchFRACategoriesService } from '@/api/fraCategory';
-import { activateFundRaisingActivityService, createFundRaisingActivityService, getAllFundRaisingActivitiesService, searchFundRaisingActivitiesService, suspendFundRaisingActivityService, updateFundRaisingActivityService } from '@/api/fundRaisingActivity';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { onMounted, ref } from 'vue'
+import { Search } from '@element-plus/icons-vue'
+import { searchHistoryOfCompletedFRAService } from '@/api/fundRaisingActivity';
+import { onMounted, ref } from 'vue';
 
 const currentFra = ref({})
 const detailFRAdrawer = ref(false)
-const showDrawer = ref(false)
-const isEditMode = ref(false);
-const fraFormRef = ref()
 const filter = ref({
     title: '',
-    status: 'all',
     categotyId: 'all',
     order: "DESC"
 })
-const fraForm = ref({
-    id: null,
-    title: "",
-    description: "",
-    targetAmount: null,
-    categoryId: null
-})
 const fundRaisingActivities = ref([]);
-const availableCategories = ref([])
 const existCategories = ref([]);
 
-const searchFundRaisingActivities = async () => {
-    const fundRaisingActivitiesData = await searchFundRaisingActivitiesService(filter.value.title.trim(), filter.value.status === 'all' ? null : filter.value.status, filter.value.categotyId === 'all' ? null : filter.value.categotyId, filter.value.order === 'ASC' ? 'ASC' : 'DESC');
-    fundRaisingActivities.value = fundRaisingActivitiesData
-}
-
-const getAllFundRaisingActivities = async () => {
-    const fundRaisingActivitiesData = await getAllFundRaisingActivitiesService();
+const searchHistoryOfCompletedFRA = async () => {
+    const fundRaisingActivitiesData = await searchHistoryOfCompletedFRAService(filter.value.title.trim(), filter.value.categotyId === 'all' ? null : filter.value.categotyId, filter.value.order === 'ASC' ? 'ASC' : 'DESC');
     fundRaisingActivities.value = fundRaisingActivitiesData
     fundRaisingActivitiesData.forEach(fra => {
         if (existCategories.value.some(category => category.id == fra.categoryId)) return
@@ -267,191 +177,16 @@ const getAllFundRaisingActivities = async () => {
         }
         existCategories.value.push(categoryData)
     });
-    console.log(fundRaisingActivitiesData);
-}
-
-const getAllActiveFRACategories = async () => {
-    const fraCategoriesData = await searchFRACategoriesService("", "", "ACTIVE", "DESC")
-    availableCategories.value = fraCategoriesData
 }
 
 onMounted(() => {
-    getAllFundRaisingActivities()
-    getAllActiveFRACategories()
+    searchHistoryOfCompletedFRA();
 })
-
-const close = () => {
-    showDrawer.value = false
-    fraForm.value.id = null
-    fraForm.value.title = ''
-    fraForm.value.description = ''
-    fraForm.value.targetAmount = null
-    fraForm.value.categoryId = null
-}
-
-const handleClose = (done) => {
-    ElMessageBox.confirm('Are you sure you want to close this?')
-        .then(() => {
-            done()
-            fraForm.value.id = null
-            fraForm.value.title = ''
-            fraForm.value.description = ''
-            fraForm.value.targetAmount = null
-            fraForm.value.categoryId = null
-        })
-        .catch(() => {
-            // catch error
-        })
-}
-
-const rules = {
-    title: [
-        {
-            required: true,
-            message: "Title cannot be empty",
-            trigger: ["blur", "submit"]
-        }
-    ],
-
-    description: [
-        {
-            required: true,
-            message: "Description cannot be empty",
-            trigger: ["blur", "submit"]
-        }
-    ],
-
-    targetAmount: [
-        {
-            required: true,
-            message: "Target amount cannot be empty",
-            trigger: ["blur", "submit"]
-        },
-        {
-            type: "number",
-            message: "Target amount must be a number",
-            trigger: ["blur", "submit"]
-        },
-        {
-            validator: (rule, value, callback) => {
-                if (value < 0) {
-                    callback(new Error("Target amount cannot be less than 0.00"))
-                } else {
-                    callback()
-                }
-            },
-            trigger: ["blur", "submit"]
-        }
-    ],
-
-    categoryId: [
-        {
-            required: true,
-            message: "Please select a category",
-            trigger: ["blur", "submit"]
-        }
-    ]
-}
-
-const openCreateDrawer = () => {
-    fraForm.value.id = null
-    fraForm.value.title = ''
-    fraForm.value.description = ''
-    fraForm.value.categoryId = null
-    fraForm.value.targetAmount = null
-    isEditMode.value = false;
-    showDrawer.value = true;
-}
-
-const openUpdateDrawer = (fra) => {
-    fraForm.value.id = fra.id
-    fraForm.value.title = fra.title
-    fraForm.value.description = fra.description
-    fraForm.value.targetAmount = fra.targetAmount
-    fraForm.value.categoryId = availableCategories.value.find(
-        c => c.name === fra.categoryName
-    )?.id
-    isEditMode.value = true
-    showDrawer.value = true
-}
-
-const handleSubmitFRA = async () => {
-    try {
-        await fraFormRef.value.validate()
-        if (isEditMode.value) {
-            const isUpdate = await updateFundRaisingActivityService(fraForm.value);
-            if (isUpdate) {
-                ElMessage.success("Updated successfully")
-                fraForm.value.id = null
-                fraForm.value.title = ''
-                fraForm.value.description = '',
-                    fraForm.value.categoryId = null
-                fraForm.value.targetAmount = null
-                showDrawer.value = false
-                getAllFundRaisingActivities()
-            } else {
-                ElMessage.error("Operation failure")
-            }
-        } else {
-            const isCreated = await createFundRaisingActivityService(fraForm.value)
-            if (isCreated) {
-                ElMessage.success("Created successfully")
-                fraForm.value.id = null
-                fraForm.value.title = ''
-                fraForm.value.description = '',
-                    fraForm.value.categoryId = null
-                fraForm.value.targetAmount = null
-                showDrawer.value = false
-                getAllFundRaisingActivities()
-            } else {
-                ElMessage.error("Operation failure")
-            }
-        }
-    } catch (error) {
-        ElMessage.error("Operation failure")
-    }
-    return
-}
-
-const suspendFundRaisingActivity = async (fra) => {
-    if (fra.status === 'SUSPENDED') {
-        return
-    }
-    const isSuspended = await suspendFundRaisingActivityService(fra.id);
-    if (isSuspended) {
-        ElMessage.success("Suspended successfully")
-    } else {
-        ElMessage.error("Operation failure")
-    }
-    getAllFundRaisingActivities()
-}
-
-const activateFundRaisingActivity = async (fra) => {
-    if (fra.status === 'ACTIVE') {
-        return
-    }
-    const isActivated = await activateFundRaisingActivityService(fra.id);
-    if (isActivated) {
-        ElMessage.success("Activated successfully")
-    } else {
-        ElMessage.error("Operation failure")
-    }
-    getAllFundRaisingActivities()
-}
 
 const showFRADetail = (fra) => {
     currentFra.value = fra
     detailFRAdrawer.value = true;
 }
-
-
-
-
-
-
-
-
-
 
 const formatNumber = (num) => {
     return Number(num).toLocaleString('en-US', {

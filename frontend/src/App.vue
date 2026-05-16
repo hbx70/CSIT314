@@ -48,13 +48,26 @@
                         </div>
                     </template>
 
+                    <template v-else-if="userInfoStore.info.userProfileName === 'FUND_RAISER'">
+                        <div class="nav-item-wrapper" @click="$router.push('/fundraiser')">
+                            <div :class="['nav-btn', { active: $route.path === '/fundraiser' }]"><span
+                                    class="material-symbols-outlined">event</span></div>
+                            <span class="nav-label">FRA</span>
+                        </div>
+                        <div class="nav-item-wrapper" @click="$router.push('/fundraiser/history')">
+                            <div :class="['nav-btn', { active: $route.path === '/fundraiser/history' }]"><span
+                                    class="material-symbols-outlined">history</span></div>
+                            <span class="nav-label">History</span>
+                        </div>
+                    </template>
+
                     <template v-else>
                     </template>
 
                 </div>
             </nav>
 
-            <button @click="logout" class="logoutBtn">Logout</button>
+            <button @click="confirmLogout" class="logoutBtn">Logout</button>
         </aside>
 
         <main class="content">
@@ -68,13 +81,33 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useUserInfoStore } from './stores/userInfo'
+import { logoutService } from './api/userAccount'
+import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 
 const userInfoStore = useUserInfoStore()
 
-const logout = () => {
-    localStorage.removeItem('currentUser')
+const confirmLogout = () => {
+    ElMessageBox.confirm(
+        `Are you sure you want to logout?`,
+        'Confirm',
+        {
+            confirmButtonText: 'logout',
+            confirmButtonType: 'danger',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+        }
+    )
+        .then(() => {
+            logout()
+        })
+        .catch(() => {
+        })
+}
+
+const logout = async () => {
+    await logoutService();
     router.push('/login')
 }
 </script>

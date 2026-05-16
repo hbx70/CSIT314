@@ -1,78 +1,708 @@
 <template>
-  <div class="doneePage">
-    <header class="pageHeader">
-      <h1 class="mainTitle">Saved Projects</h1>
-    </header>
+    <div class="doneePage">
+        <header class="pageHeader">
+            <h1 class="mainTitle">Saved Fund Raising Activities</h1>
+            <div class="searchContainer">
+                <div class="filterBlock">
+                    <el-input v-model="filter.title" placeholder="Search Fund Raising Activity Title ..."
+                        :prefix-icon="Search" size="large" @input="searchFavouriteList" />
+                    <div class="filterContainer">
+                        <div class="radioGroupContainer">
+                            <p>Status</p>
+                            <el-radio-group v-model="filter.status" size="large" fill="#409eff"
+                                @change="searchFavouriteList">
+                                <el-radio-button label="All" value="all" />
+                                <el-radio-button label="Active" value="ACTIVE" />
+                                <el-radio-button label="Suspended" value="SUSPENDED" />
+                                <el-radio-button label="Completed" value="COMPLETED" />
+                            </el-radio-group>
+                        </div>
+                        <div class="radioGroupContainer">
+                            <p>Category</p>
+                            <el-radio-group v-model="filter.categoryId" size="large" fill="#409eff"
+                                @change="searchFavouriteList">
+                                <el-radio-button label="ALL" value="all" />
+                                <el-radio-button v-for="(category, index) in existCategories" :key="index"
+                                    :label="category.name" :value="category.id" />
+                            </el-radio-group>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
 
-    <main class="mainContent">
-      <div v-if="savedList.length === 0" class="emptyState">
-        <span class="material-symbols-outlined">bookmark_border</span>
-        <p>You haven't saved any projects yet.</p>
-      </div>
-      <div class="gridWrapper" v-else>
-        <div v-for="p in savedList" :key="p.id" class="projectCard">
-          <div class="cardTop">
-            <span class="categoryBadge">{{ p.category }}</span>
-            <button class="removeFavBtn" @click="removeFav(p.id)">❤️</button>
-          </div>
-          <h2 class="projectTitle">{{ p.title }}</h2>
-          <div class="fundingRow">
-            <span><b>${{ p.current }}</b> / <small>${{ p.goal }}</small></span>
-            <span class="percentText">{{ Math.round((p.current/p.goal)*100) }}%</span>
-          </div>
-          <div class="progressBar"><div class="fill" :style="{width: (p.current/p.goal*100)+'%'}"></div></div>
-          
-          <div class="statsRow">
-            <div class="statPill"><span class="material-symbols-outlined">visibility</span> {{ p.views || 0 }}</div>
-            <div class="statPill"><span class="material-symbols-outlined">star</span> {{ p.favCount || 0 }}</div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
+        <main class="mainContent">
+            <div v-if="savedFRA.length === 0" class="emptyState">
+                <span class="material-symbols-outlined">bookmark_border</span>
+                <p>You haven't saved any projects yet.</p>
+            </div>
+            <div class="gridWrapper" v-else>
+                <div v-for="(fra, index) in savedFRA" :key="index" class="projectCard"
+                    :class="{ 'is-locked': fra.status === 'SUSPENDED' }" @click="openDetails(fra)">
+                    <div class="cardTop">
+                        <span class="categoryBadge">{{ fra.categoryName }}</span>
+                        <div class="statusDot" :class="{ active: fra.status === 'ACTIVE', suspend: fra.status === 'SUSPENDED'}"></div>
+                    </div>
+                    <div class="statInfoContainer">
+                        <div class="cardCreatorInfoContainer">
+                            <el-avatar>{{ fra.creatorName.slice(0, 1) }}</el-avatar>
+                            <div class="cardCreatorInfoBlock">
+                                <p class="name">{{ fra.creatorName }}</p>
+                                <p class="timeInfo">{{ formatTime(fra.createdAt) }}</p>
+                            </div>
+                        </div>
+                        <div class="statBox">
+                            <div class="statItem views">
+                                <span class="material-symbols-outlined">
+                                    visibility
+                                </span>
+                                <span class="statNum">{{ fra.viewCount }}</span>
+                            </div>
+
+                            <div class="statItem shortlist">
+                                <span class="material-symbols-outlined">
+                                    star
+                                </span>
+                                <span class="statNum">{{ fra.shortlistCount }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <h2 class="projectTitle">{{ fra.title }}</h2>
+                    <div class="fundingRow">
+                        <span><b>${{ formatNumber(fra.currentAmount) }}</b> / <small>${{
+                            formatNumber(fra.targetAmount) }}</small></span>
+                        <span class="percentText">{{ Math.round((fra.currentAmount / fra.targetAmount) * 100) }}%</span>
+                    </div>
+                    <div class="progressBar">
+                        <div class="fill" :style="{ width: (fra.currentAmount / fra.targetAmount * 100) + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <el-drawer v-model="drawer" direction="rtl" size="42%" :with-header="false" class="fra-detail-drawer">
+            <div class="drawer-container" v-if="selected">
+                <div class="drawer-header">
+                    <div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <el-tag size="large">{{ selected.categoryName }}</el-tag>
+                            <el-tag size="large" :type="selected.status === 'ACTIVE' ? 'success' : selected.status === 'SUSPENDED' ? 'danger' : 'info'">{{ selected.status }}</el-tag>
+                        </div>
+                        <div class="creatorInfoContainer">
+                            <el-avatar size="large">{{ selected.creatorName.slice(0, 1) }}</el-avatar>
+                            <div class="creatorInfoBlock">
+                                <p class="name">{{ selected.creatorName }}</p>
+                                <p class="timeInfo">{{ formatTime(selected.createdAt) }}</p>
+                            </div>
+                        </div>
+                        <h1>{{ selected.title }}</h1>
+                        <p class="drawer-description">
+                            {{ selected.description }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="amount-section">
+                    <div class="amount-card">
+                        <span>Current Amount</span>
+                        <h2>${{ formatNumber(selected.currentAmount) }}</h2>
+                    </div>
+                    <div class="amount-card">
+                        <span>Target Amount</span>
+                        <h2>${{ formatNumber(selected.targetAmount) }}</h2>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-top">
+                        <span>Fund Raising Progress</span>
+                        <span>{{ Math.min(Math.round((selected.currentAmount / selected.targetAmount) * 100), 100)
+                        }}%</span>
+                    </div>
+                    <el-progress
+                        :percentage="Math.min(Math.round((selected.currentAmount / selected.targetAmount) * 100), 100)"
+                        :stroke-width="12" :show-text="false" status="success" />
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span class="material-symbols-outlined">visibility</span>
+                        <p>{{ selected.viewCount }} Views</p>
+                    </div>
+                    <div class="stat-box">
+                        <span class="material-symbols-outlined">star</span>
+                        <p>{{ selected.shortlistCount }} Saved</p>
+                    </div>
+                </div>
+
+                <el-button @click="confirmUnsave()" type="danger" style="width: fit-content;" :icon="Delete" round plain size="large">Unsave This Fund Raising Activity !</el-button>
+
+                <div class="donation-actions-area" v-if="selected.targetAmount > selected.currentAmount">
+                    <p class="action-label">Enter Donation Amount ($)</p>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <el-input-number v-model="donation.amount" :min="1"
+                            :max="Math.max(1, selected.targetAmount - selected.currentAmount)" :step="10" :precision="2"
+                            controls-position="right" size="large" style="width: 100%;">
+                            <template #prefix>
+                                <span>$</span>
+                            </template>
+                        </el-input-number>
+                        <el-button @click="confirmDonate()" :icon="Position" type="primary" size="large" round>
+                            Donate ${{ formatNumber(donation.amount) }} Now
+                        </el-button>
+                    </div>
+                </div>
+            </div>
+        </el-drawer>
+    </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-const projects = ref(JSON.parse(localStorage.getItem('fraProjects') || '[]'))
-const favs = ref(JSON.parse(localStorage.getItem('fraFavs') || '[]'))
+import { Search, Position, Delete } from '@element-plus/icons-vue'
+import { doneeMakeDonationService, doneeSearchFavouriteListService, doneeUnsaveFRAFromFavouriteListService, doneeViewDetailsOfFundRaisingActivityService } from '@/api/donee';
+import { onMounted, ref } from 'vue'
 
-const savedList = computed(() => projects.value.filter(p => favs.value.includes(p.id)))
+const savedFRA = ref([]);
+const filter = ref({
+    title: '',
+    status: 'all',
+    categoryId: 'all'
+})
+const donation = ref({
+    fraId: null,
+    amount: 0,
+    status: "CANCELLED"
+})
+const existCategories = ref([]);
+const selected = ref(null);
+const drawer = ref(false);
 
-const removeFav = (id) => {
-  favs.value = favs.value.filter(f => f !== id);
-  const p = projects.value.find(x => x.id === id);
-  if(p) p.favCount--;
-  localStorage.setItem('fraFavs', JSON.stringify(favs.value));
-  localStorage.setItem('fraProjects', JSON.stringify(projects.value));
+const searchFavouriteList = async () => {
+    const fundRaisingActivitiesData = await doneeSearchFavouriteListService(filter.value.title.trim(), filter.value.status === 'all' ? null : filter.value.status, filter.value.categoryId === 'all' ? null : filter.value.categoryId);
+    savedFRA.value = fundRaisingActivitiesData;
+    fundRaisingActivitiesData.forEach(fra => {
+        if (existCategories.value.some(category => category.id == fra.categoryId)) return
+        const categoryData = {
+            id: fra.categoryId,
+            name: fra.categoryName
+        }
+        existCategories.value.push(categoryData)
+    });
+    // console.log(savedFRA.value);
 }
+
+onMounted(() => {
+    searchFavouriteList();
+})
+
+const openDetails = async (fra) => {    
+    const fundRaisingActivityData = await doneeViewDetailsOfFundRaisingActivityService(fra.id);
+    if (fundRaisingActivityData) {
+        fra.viewCount += 1
+        selected.value = fundRaisingActivityData;
+        donation.value.fraId = fra.id
+        donation.value.amount = 0;
+        drawer.value = true;
+    } else {
+        ElMessage.error("Operation failure")
+    }
+}
+
+const confirmDonate = () => {
+    ElMessageBox.confirm(
+        `Are you sure you want to donate $${formatNumber(donation.value.amount)}?`,
+        'Confirm',
+        {
+            confirmButtonText: 'Donate',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+        }
+    )
+        .then(() => {
+            donate('SUCCESS')
+        })
+        .catch(() => {
+            donate('CANCELLED')
+        })
+}
+
+const confirmUnsave = () => {
+    ElMessageBox.confirm(
+        `Are you sure you want to remove this FRA from your favourite list?`,
+        'Confirm',
+        {
+            confirmButtonText: 'Remove',
+            confirmButtonType: 'danger',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+        }
+    )
+        .then(() => {
+            unsaveFRAFromFavouriteList()
+        })
+        .catch(() => {
+        })
+}
+
+const donate = async (status) => {
+    if (selected.value.targetAmount < selected.value.currentAmount + donation.value.amount) return ElMessage.error("Please enter valid amount")
+
+    donation.value.status = status
+    
+    const isDonationRecorded = await doneeMakeDonationService(donation.value)
+    if (!isDonationRecorded) return ElMessage.error("Operation failure")
+    if (status==='SUCCESS') {
+        const currentFRA = savedFRA.value.find(fra => fra.id === selected.value.id);        
+        currentFRA.currentAmount += donation.value.amount
+        selected.value.currentAmount += donation.value.amount
+        ElMessage({
+            type: 'success',
+            message: 'Donate completed',
+        })
+        donation.value.amount = 0
+    } else {
+        ElMessage({
+            type: 'info',
+            message: 'Donate canceled',
+        })
+    }
+}
+
+const unsaveFRAFromFavouriteList = async () => {
+    const isUnsaved = await doneeUnsaveFRAFromFavouriteListService(selected.value.id)
+    if (isUnsaved) {
+        ElMessage.success("Unsaved successfully")
+        drawer.value = false;
+        searchFavouriteList();
+    } else {
+        ElMessage.error("Operation failure")
+    }
+}
+
+const formatNumber = (num) => {
+    return Number(num).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })
+}
+
+import dayjs from 'dayjs'
+import { ElMessage, ElMessageBox } from 'element-plus';
+
+const formatTime = (time) => {
+    return dayjs(time).format("YYYY-MM-DD HH:mm:ss")
+}
+
+
 </script>
 
 <style scoped>
-.doneePage { background: #fcfcfd; min-height: 100vh; }
-.pageHeader { background: white; padding: 40px 20px; border-bottom: 1px solid #f1f5f9; text-align: center; }
-.mainTitle { font-size: 32px; font-weight: 900; color: #0f172a; margin-bottom: 25px; }
-
-.gridWrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 40px; }
-.projectCard { 
-  background: white; border-radius: 32px; padding: 28px; border: 1px solid #f1f5f9;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+.emptyState {
+    text-align: center;
+    margin-top: 100px;
+    color: #94a3b8;
 }
 
-.cardTop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.categoryBadge { background: #eff6ff; color: #3b82f6; font-size: 10px; font-weight: 900; padding: 6px 12px; border-radius: 8px; text-transform: uppercase; }
-.removeFavBtn { background: none; border: none; font-size: 20px; cursor: pointer; transition: 0.2s; }
-.removeFavBtn:hover { transform: scale(1.2); }
+.emptyState span {
+    font-size: 60px;
+    margin-bottom: 10px;
+}
 
-.projectTitle { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
-.fundingRow { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-.percentText { color: #3b82f6; font-weight: 800; font-size: 14px; }
-.progressBar { height: 6px; background: #f1f5f9; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
-.progressBar .fill { height: 100%; background: #3b82f6; border-radius: 10px; }
+.statInfoContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-.statsRow { display: flex; gap: 10px; margin-bottom: 10px; }
-.statPill { background: #f8fafc; border: 1px solid #f1f5f9; padding: 6px 14px; border-radius: 14px; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: #64748b; }
+.creatorInfoContainer {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
 
-.emptyState { text-align: center; margin-top: 100px; color: #94a3b8; }
-.emptyState span { font-size: 60px; margin-bottom: 10px; }
+.creatorInfoBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.creatorInfoBlock .name {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.creatorInfoBlock .timeInfo {
+    font-size: 14px;
+    font-weight: 300;
+    columns: #909399;
+}
+
+.cardCreatorInfoContainer {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.cardCreatorInfoBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.cardCreatorInfoBlock .name {
+    font-size: 16px;
+    font-weight: 450;
+}
+
+.cardCreatorInfoBlock .timeInfo {
+    font-size: 13px;
+    font-weight: 30;
+    columns: #909399;
+}
+
+
+.doneePage {
+    background: #fcfcfd;
+    min-height: 100vh;
+}
+
+.pageHeader {
+    background: white;
+    padding: 40px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: center;
+}
+
+.mainTitle {
+    font-size: 32px;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 25px;
+}
+
+.gridWrapper {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+    padding: 40px;
+}
+
+.projectCard {
+    background: white;
+    border-radius: 32px;
+    padding: 32px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.projectCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+}
+
+.cardTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.categoryBadge {
+    background: #eff6ff;
+    color: #3b82f6;
+    font-size: 10px;
+    font-weight: 900;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-transform: uppercase;
+}
+
+.statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #cbd5e1;
+}
+
+.statusDot.active {
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+}
+
+.statusDot .suspend {
+    background: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+}
+
+.projectTitle {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 20px;
+}
+
+.fundingRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+}
+
+.percentText {
+    color: #3b82f6;
+    font-weight: 800;
+    font-size: 14px;
+}
+
+.progressBar {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progressBar .fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.statBox {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.statItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px;
+    border-radius: 8px;
+}
+
+.statItem.views {
+    background: rgba(245, 247, 250, 0.95);
+    color: #4b5563;
+    border: 1px solid rgba(209, 213, 219, 0.7);
+}
+
+.statItem.shortlist {
+    background: rgba(255, 248, 235, 0.95);
+    color: #d97706;
+    border: 1px solid rgba(251, 191, 36, 0.45);
+}
+
+.statItem .material-symbols-outlined {
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 300,
+        'GRAD' 200,
+        'opsz' 48;
+    font-size: 16px;
+    color: #9ca3af;
+}
+
+.statItem .statNum {
+    font-size: 12px;
+    font-weight: 300;
+}
+
+.filterBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 35px;
+    align-items: center;
+    padding: 0 60px;
+}
+
+.filterBlock .title {
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.filterContainer {
+    display: flex;
+    gap: 10px;
+}
+
+.radioGroupContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Fundraiser 风格的抽屉内部样式 */
+.fra-detail-drawer :deep(.el-drawer) {
+    border-radius: 28px 0 0 28px;
+    overflow: hidden;
+}
+
+.drawer-container {
+    padding: 40px;
+    background: #f8fafc;
+    min-height: 100%;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.drawer-header h1 {
+    margin: 15px 0;
+    font-size: 32px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.drawer-description {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #6b7280;
+}
+
+.amount-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.amount-card {
+    background: white;
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.amount-card span {
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.amount-card h2 {
+    margin-top: 14px;
+    font-size: 30px;
+    color: #111827;
+    font-weight: 800;
+}
+
+.progress-section {
+    background: white;
+    padding: 28px;
+    border-radius: 22px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.progress-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.stat-box {
+    background: white;
+    padding: 18px;
+    border-radius: 20px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-box p {
+    margin: 0;
+    font-weight: 700;
+    color: #111827;
+}
+
+.stat-box .material-symbols-outlined {
+    color: #94a3b8;
+}
+
+.action-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.custom-amount-input :deep(.el-input__wrapper) {
+    border-radius: 12px;
+    padding: 5px 15px;
+}
+
+.drawerActions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.donateBtn {
+    width: 100%;
+    padding: 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 16px;
+}
+
+.donateBtn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+}
+
+.saveBtn {
+    width: 100%;
+    padding: 20px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    border-radius: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 16px;
+}
+
+.saveBtn:hover {
+    background: #e2e8f0;
+}
+
+.saveBtn.isSaved {
+    background: #fff1f2;
+    color: #e11d48;
+}
+
+:deep(.fra-detail-drawer .el-drawer__body) {
+    padding: 0;
+}
 </style>

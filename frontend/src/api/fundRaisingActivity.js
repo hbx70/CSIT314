@@ -1,7 +1,7 @@
 import request from '@/utils/request.js'
 
-export const getAllFundRaisingActivitiesService = (pageNum, pageSize) => {
-    return request.get("/fra?pageNum=" + pageNum + "&pageSize=" + pageSize)
+export const getAllFundRaisingActivitiesService = () => {
+    return request.get("/fra")
 }
 
 export const createFundRaisingActivityService = (fundRaisingActivityData) => {
@@ -20,12 +20,18 @@ export const updateFundRaisingActivityService = (newFundRaisingActivityData) => 
     return request.put("/fra/update", newFundRaisingActivityData)
 }
 
-export const searchFundRaisingActivitiesService = (pageNum, pageSize, title, status, categoryId, order) => {
+export const searchFundRaisingActivitiesService = (title, status, categoryId, order) => {
     return request.get("/fra/search", {params: {
-        pageNum: pageNum,
-        pageSize: pageSize,
         title: title,
         status: status,
+        categoryId: categoryId,
+        order: order
+    }})
+}
+
+export const searchHistoryOfCompletedFRAService = (title, categoryId, order) => {
+    return request.get("/fra/search/completed", {params: {
+        title: title,
         categoryId: categoryId,
         order: order
     }})
