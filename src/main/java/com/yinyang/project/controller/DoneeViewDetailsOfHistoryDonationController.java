@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
-public class DoneeViewDetailsOfDonationHistoryController {
+public class DoneeViewDetailsOfHistoryDonationController {
 
     private Donation donation;
 

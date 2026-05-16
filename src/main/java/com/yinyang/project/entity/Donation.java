@@ -84,7 +84,7 @@ public class Donation {
         );
     }
 
-    public List<DonationResponse> searchDonationHistories(Status status, String title, @NotBlank String orderBy, Integer currentUserId) {
+    public List<DonationResponse> searchHistoryDonations(Status status, String title, @NotBlank String orderBy, Integer currentUserId) {
         StringBuilder sql = new StringBuilder(
                 "SELECT d.*, " +
                 "fra.title, fra.view_count, fra.shortlist_count, fra.status AS fra_status, fra.target_amount, fra.current_amount " +
