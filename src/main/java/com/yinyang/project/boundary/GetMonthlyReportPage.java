@@ -1,7 +1,7 @@
 package com.yinyang.project.boundary;
 
-import com.yinyang.project.controller.ViewReportController;
-import com.yinyang.project.entity.Report;
+import com.yinyang.project.controller.GetMonthlyReportController;
+import com.yinyang.project.dto.Report;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -11,15 +11,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Validated
-@RequestMapping("/report")
-public class ViewReportPage {
+@RequestMapping("/report/monthly")
+public class GetMonthlyReportPage {
 
     @Autowired
-    private ViewReportController viewReportController;
+    private GetMonthlyReportController getMonthlyReportController;
 
     @GetMapping
-    public Report getReport(@NotNull Integer size, @NotNull Report.Range range) {
-        return viewReportController.getReport(size, range);
+    public Report getMonthlyReport(@NotNull Integer size) {
+        return getMonthlyReportController.getMonthlyReport(size);
     }
 
 }
