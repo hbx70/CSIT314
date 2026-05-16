@@ -28,7 +28,7 @@ public class FavouriteFRA {
                     (rs, rowNum) -> {
                         FavouriteFRA favouriteFRA = new FavouriteFRA();
                         favouriteFRA.setId(rs.getInt("id"));
-                        favouriteFRA.setUserAccountId(rs.getInt(rs.getInt("user_account_id")));
+                        favouriteFRA.setUserAccountId(rs.getInt("user_account_id"));
                         favouriteFRA.setFraId((rs.getInt("fra_id")));
                         favouriteFRA.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         return favouriteFRA;
@@ -53,13 +53,26 @@ public class FavouriteFRA {
         return false;
     }
 
+    public boolean unsaveFundRaisingActivityFromFavourite(Integer currentUserId, @NotNull Integer fundRaisingActivityId) {
+        if (this.getFavouriteFRAByUserIdAndFRAId(currentUserId, fundRaisingActivityId) != null) {
+            String sql = "DELETE FROM favourite_fra WHERE user_account_id = ? AND fra_id = ?";
+            DBContext.getJdbcTemplate().update(
+                    sql,
+                    currentUserId,
+                    fundRaisingActivityId
+            );
+            return true;
+        }
+        return false;
+    }
+
     public List<FundRaisingActivityResponse> searchFavouriteList(String title, FundRaisingActivity.Status status, Integer categoryId, Integer currentUserId) {
         StringBuilder sql = new StringBuilder(
                 "SELECT fra.*, " +
                 "ua.username AS creator_name, ua.user_profile_name AS creator_role, ua.status AS creator_account_status, " +
                 "frac.name AS category_name, frac.status AS category_status " +
                 "FROM favourite_fra fav " +
-                "LETT JOIN fund_raising_activity fra ON fav.fra_id = fra.id" +
+                "LEFT JOIN fund_raising_activity fra ON fav.fra_id = fra.id " +
                 "LEFT JOIN user_account ua ON fra.created_by = ua.id " +
                 "LEFT JOIN fra_category frac ON fra.category_id = frac.id " +
                 "WHERE 1 = 1"
@@ -81,7 +94,7 @@ public class FavouriteFRA {
 
         if (status != null) {
             sql.append(" AND fra.status = ?");
-            params.add(status);
+            params.add(status.name());
         }
 
         sql.append(" ORDER BY fav.created_at DESC");
@@ -96,6 +109,7 @@ public class FavouriteFRA {
                     fundRaisingActivityResponse.setDescription(rs.getString("description"));
                     fundRaisingActivityResponse.setViewCount(rs.getInt("view_count"));
                     fundRaisingActivityResponse.setShortlistCount(rs.getInt("shortlist_count"));
+                    fundRaisingActivityResponse.setStatus(FundRaisingActivity.Status.valueOf(rs.getString("status")));
                     fundRaisingActivityResponse.setTargetAmount(rs.getBigDecimal("target_amount"));
                     fundRaisingActivityResponse.setCurrentAmount(rs.getBigDecimal("current_amount"));
                     fundRaisingActivityResponse.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());

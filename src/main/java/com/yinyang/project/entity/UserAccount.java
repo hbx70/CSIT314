@@ -2,6 +2,8 @@ package com.yinyang.project.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yinyang.project.DBContext;
+import com.yinyang.project.dto.MultiTrendDataResponse;
+import com.yinyang.project.dto.TrendDataResponse;
 import com.yinyang.project.utils.JwtUtil;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -9,11 +11,11 @@ import lombok.Setter;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.temporal.WeekFields;
+import java.util.*;
 
 @Setter
 @Getter

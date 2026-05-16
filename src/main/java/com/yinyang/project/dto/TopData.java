@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryReportResponse {
-    private String category;
+public class TopData {
+    private String dataName;
     private Integer count;
 }
