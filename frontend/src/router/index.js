@@ -10,6 +10,7 @@ import PMReportView from "@/component/PMReportView.vue";
 import DoneeView from '../component/DoneeView.vue'
 import DoneeSave from '../component/DoneeSave.vue'
 import DoneeHistory from '../component/DoneeHistory.vue'
+import FundRaiserFRAHistoryView from "@/component/FundRaiserFRAHistoryView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -44,6 +45,11 @@ const router = createRouter({
     {
         path: "/fundraiser",
         component: FundRaiserView,
+        //   meta: { requiresAuth: true, role: "FUND_RAISER" },
+    },
+    {
+        path: "/fundraiser/history",
+        component: FundRaiserFRAHistoryView,
         //   meta: { requiresAuth: true, role: "FUND_RAISER" },
     },
     {
