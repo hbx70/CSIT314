@@ -89,7 +89,7 @@ public class UserAccount {
         }
     }
 
-    public boolean isUsernameTakenByOthers(String username, int id) {
+    public boolean isUsernameTakenByOthers(String username, Integer id) {
         String sql = "SELECT COUNT(*) FROM user_account WHERE username = ? AND id != ?";
         Integer count = DBContext.getJdbcTemplate().queryForObject(
                 sql,
@@ -100,7 +100,7 @@ public class UserAccount {
         return count != null && count > 0;
     }
 
-    public boolean isEmailTakenByOthers(String email, int id) {
+    public boolean isEmailTakenByOthers(String email, Integer id) {
         String sql = "SELECT COUNT(*) FROM user_account WHERE email = ? AND id != ?";
         Integer count = DBContext.getJdbcTemplate().queryForObject(
                 sql,
