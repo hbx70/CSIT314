@@ -200,7 +200,7 @@ const createCategory = async () => {
     }
 }
 
-const suspendFRACategory = async (category) => {
+const suspendFRACategory = async (category) => {    
     if (category.status === 'SUSPENDED') {
         return
     }

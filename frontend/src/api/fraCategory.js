@@ -9,11 +9,11 @@ export const createFRACategoryService = (categoryData) => {
 }
 
 export const suspendFRACategoryService = (categoryId) => {
-    return request.patch("/fra/category/suspend?FRACategoryId=" + categoryId)
+    return request.patch("/fra/category/suspend?fraCategoryId=" + categoryId)
 }
 
 export const activateFRACategoryService = (categoryId) => {
-    return request.patch("/fra/category/activate?FRACategoryId=" + categoryId)
+    return request.patch("/fra/category/activate?fraCategoryId=" + categoryId)
 }
 
 export const updateFRACategoryService = (newFRACategoryData) => {
