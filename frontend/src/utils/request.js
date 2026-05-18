@@ -22,8 +22,7 @@ instance.interceptors.request.use(
 
 
 import { useUserInfoStore } from '@/stores/userInfo';
-import { useRouter } from 'vue-router';
-const router = useRouter()
+import router from '@/router'
 instance.interceptors.response.use(
     result=>{
         return result.data;
